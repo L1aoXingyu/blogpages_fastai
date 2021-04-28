@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>FastReID V1.0: Beyond reID | Sherlock’s blog</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="FastReID V1.0: Beyond reID" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="fastreid v1.0 功能介绍" />
+<meta property="og:description" content="fastreid v1.0 功能介绍" />
+<link rel="canonical" href="https://l1aoxingyu.github.io/blogpages/reid/fastreid/2021/04/28/fastreid-v1.html" />
+<meta property="og:url" content="https://l1aoxingyu.github.io/blogpages/reid/fastreid/2021/04/28/fastreid-v1.html" />
+<meta property="og:site_name" content="Sherlock’s blog" />
+<meta property="og:image" content="https://l1aoxingyu.github.io/blogpages/images/fastreid-v1/pipeline.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-04-28T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://l1aoxingyu.github.io/blogpages/reid/fastreid/2021/04/28/fastreid-v1.html","@type":"BlogPosting","headline":"FastReID V1.0: Beyond reID","dateModified":"2021-04-28T00:00:00-05:00","datePublished":"2021-04-28T00:00:00-05:00","image":"https://l1aoxingyu.github.io/blogpages/images/fastreid-v1/pipeline.jpg","mainEntityOfPage":{"@type":"WebPage","@id":"https://l1aoxingyu.github.io/blogpages/reid/fastreid/2021/04/28/fastreid-v1.html"},"description":"fastreid v1.0 功能介绍","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blogpages/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://l1aoxingyu.github.io/blogpages/feed.xml" title="Sherlock's blog" /><link rel="shortcut icon" type="image/x-icon" href="/blogpages/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blogpages/">Sherlock&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blogpages/about/">About Me</a><a class="page-link" href="/blogpages/search/">Search</a><a class="page-link" href="/blogpages/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">FastReID V1.0: Beyond reID</h1><p class="page-description">fastreid v1.0 功能介绍</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-28T00:00:00-05:00" itemprop="datePublished">
+        Apr 28, 2021
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      3 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blogpages/categories/#reid">reid</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blogpages/categories/#fastreid">fastreid</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#引言">引言</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#embedding-知识蒸馏">Embedding 知识蒸馏</a></li>
+<li class="toc-entry toc-h2"><a href="#自动超参搜索">自动超参搜索</a></li>
+<li class="toc-entry toc-h2"><a href="#最多最全的任务支持">最多最全的任务支持</a></li>
+<li class="toc-entry toc-h2"><a href="#naic20-reid-比赛">NAIC20 reID 比赛</a></li>
+<li class="toc-entry toc-h2"><a href="#总结">总结</a></li>
+<li class="toc-entry toc-h2"><a href="#reference">Reference</a></li>
+</ul>
+</li>
+</ul><h1 id="引言">
+<a class="anchor" href="#%E5%BC%95%E8%A8%80" aria-hidden="true"><span class="octicon octicon-link"></span></a>引言</h1>
+
+<p>FastReID 自20年6月发布以来，我们收到了很多用户的反馈，当初的 v0.1 版本存在大量需要优化的部分，经过了最近半年的持续优化，终于在 21年1月14日，我们低调地发布了 FastReID V1.0，这次更新包括非常多的方面，但是最大的贡献在于我们将 FastReID 扩展到了更多的任务上，同时在这些任务上都达到了 SOTA 结果。</p>
+
+<p><strong>tldr</strong>: 我们更新了 FastReID V1.0 版本，不仅实现了更快的分布式训练和测试，模型一键导出 caffe/onnx/tensorRT，还实现了蒸馏，自动超参搜索以及更多任务的扩展，比如人脸识别，细粒度检索等等，最后基于 FastReID 我们拿到了深圳 NAIC20 ReID track 的第一名。</p>
+
+<p>下面简单介绍一下 FastReID V1.0 的各项改进。</p>
+<hr>
+
+<h2 id="embedding-知识蒸馏">
+<a class="anchor" href="#embedding-%E7%9F%A5%E8%AF%86%E8%92%B8%E9%A6%8F" aria-hidden="true"><span class="octicon octicon-link"></span></a>Embedding 知识蒸馏</h2>
+
+<p>深度神经网络一般有较多的冗余，同时模型太大会导致 inference 时间变长，所以在部署的时候需要考虑对模型进行压缩，减小其参数量，其中有较多的压缩方式，比如剪枝，量化和蒸馏等。
+其中蒸馏是一种比较流行的范式，可以保证模型不需要进行结构修改的情况下，得到较大的性能提升，所以我们选择在 FastReID 中加入蒸馏的支持，可以让我们用小模型部署的时候获得更大的精度提升。</p>
+
+<p>虽然蒸馏发展了这么多年，但是通过尝试我们发现 Hinton 的 <a href="https://arxiv.org/abs/1503.02531">Distilling the Knowledge in a Neural Network</a> 还是最 solid 的选择。
+同时我们将原本的蒸馏 loss 优化为具有对称性的 JS Div loss，最后修改蒸馏的 soft label 生成方式。</p>
+
+<p>不同于 softmax 分类 loss，在 embedding 任务中通常会使用效果更好的 margin-based softmax，比如 arcface 等等， 这时直接使用基于 margin 的 logits 生成 soft label 效果很不好，所以我们将 soft label 修改为去掉 margin 的 logits 输出。</p>
+
+<p>除了可以对 label 进行蒸馏之外，也可以对 feature 进行蒸馏，通过实验了一大堆不 work 的特征蒸馏方法之后，我们发现 <a href="https://github.com/clovaai/overhaul-distillation">overhaul-distillation</a> 可以在 loss 蒸馏的基础上进一步对网络进行提升，所以也将这个方法加入到了 FastReID 当中，但是由于 overhaul 需要对 backbone 进行一些修改，获得 relu 之前的 feature，所以我们选择构建了一个新的 project 而不是直接去 FastReID 里面修改 backbone。</p>
+
+<p>最后我们在 dukeMTMC 上进行实验，使用 <code class="language-plaintext highlighter-rouge">r101_ibn</code> 作为 teacher model, <code class="language-plaintext highlighter-rouge">r34</code> 作为 student model，可以获得如下的效果提升。</p>
+
+<p><strong>DukeMTMC-reid</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>Rank@1</th>
+      <th>mAP</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R101_ibn (teacher)</td>
+      <td>90.66</td>
+      <td>81.14</td>
+    </tr>
+    <tr>
+      <td>R34 (student)</td>
+      <td>86.31</td>
+      <td>73.28</td>
+    </tr>
+    <tr>
+      <td>JS Div</td>
+      <td>88.60</td>
+      <td>77.80</td>
+    </tr>
+    <tr>
+      <td>JS Div + Overhaul</td>
+      <td>88.60</td>
+      <td>78.25</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>蒸馏的使用也非常简单，只需要首先按照正常的方式训练一个 teacher model，如果只想使用 loss 蒸馏，可以使用 <code class="language-plaintext highlighter-rouge">Distiller</code> 作为 <code class="language-plaintext highlighter-rouge">meta_arch</code>，如果希望加上 overhaul，只需要使用 <code class="language-plaintext highlighter-rouge">DistillerOverhaul</code> 作为 <code class="language-plaintext highlighter-rouge">meta_arch</code> 就可以了。
+最后再指定 teacher model 的配置文件和训好的 weights 就可以了。</p>
+
+<p>下面用 R101_ibn 作为 teacher model，R34 作为 student model 举一个例子</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># teacher model training</span>
+python3 projects/FastDistill/train_net.py <span class="se">\</span>
+<span class="nt">--config-file</span> projects/FastDistill/configs/sbs_r101ibn.yml <span class="se">\</span>
+<span class="nt">--num-gpus</span> 4
+
+<span class="c"># loss distillation</span>
+python3 projects/FastDistill/train_net.py <span class="se">\</span>
+<span class="nt">--config-file</span> projects/FastDistill/configs/kd-sbs_r101ibn-sbs_r34.yaml <span class="se">\</span>
+<span class="nt">--num-gpus</span> 4 <span class="se">\</span>
+MODEL.META_ARCHITECTURE Distiller
+KD.MODEL_CONFIG projects/FastDistill/logs/dukemtmc/r101_ibn/config.yaml <span class="se">\</span>
+KD.MODEL_WEIGHTS projects/FastDistill/logs/dukemtmc/r101_ibn/model_best.pth
+
+<span class="c"># loss+overhaul distillation</span>
+python3 projects/FastDistill/train_net.py <span class="se">\</span>
+<span class="nt">--config-file</span> projects/FastDistill/configs/kd-sbs_r101ibn-sbs_r34.yaml <span class="se">\</span>
+<span class="nt">--num-gpus</span> 4 <span class="se">\</span>
+MODEL.META_ARCHITECTURE DistillerOverhaul
+KD.MODEL_CONFIG projects/FastDistill/logs/dukemtmc/r101_ibn/config.yaml <span class="se">\</span>
+KD.MODEL_WEIGHTS projects/FastDistill/logs/dukemtmc/r101_ibn/model_best.pth
+</code></pre></div></div>
+
+<h2 id="自动超参搜索">
+<a class="anchor" href="#%E8%87%AA%E5%8A%A8%E8%B6%85%E5%8F%82%E6%90%9C%E7%B4%A2" aria-hidden="true"><span class="octicon octicon-link"></span></a>自动超参搜索</h2>
+
+<p>炼丹一直困扰着各位调参侠，特别是每次到了一个新的场景，就需要重新调参来适应新的数据分布，非常浪费时间。
+所以我们决定在 FastReID 中加入了自动超参搜索的功能来解放各位调参侠的双手，让大家可以更好的划水。</p>
+
+<p>通过一系列调研，最后决定使用 <code class="language-plaintext highlighter-rouge">ray[tune]</code> 这个超参搜索的库，在集成到 FastReID 中间也遇到了非常多的坑，最后我们成功地在 FastReID 中实现了超参搜索的功能。</p>
+
+<p>使用方式非常简单，如果你想用 Bayesian 超参搜索跑 12 组试验，可以使用下面的代码就可以开始自动分布式训练，如果有4张卡，那么可以4个试验同步一起跑</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 projects/FastTune/tune_net.py <span class="se">\</span>
+<span class="nt">--config-file</span> projects/FastTune/configs/search_trial.yml <span class="se">\</span>
+<span class="nt">--num-trials</span> 12 <span class="nt">--srch-alog</span> <span class="s2">"bohb"</span>
+</code></pre></div></div>
+
+<p>另外需要搜索的超参空间需要在 <code class="language-plaintext highlighter-rouge">projects/FastTune/tune_net.py</code> 中进行配置，更具体的使用方式可以参考 <a href="https://github.com/JDAI-CV/fast-reid/issues/293">tutorial</a>。</p>
+
+<p>唯一不足的是还不能用pytorch的分布式数据并行，后续有时间会进一步优化，希望这能够成为大家打比赛刷分，做业务的利器。</p>
+
+<h2 id="最多最全的任务支持">
+<a class="anchor" href="#%E6%9C%80%E5%A4%9A%E6%9C%80%E5%85%A8%E7%9A%84%E4%BB%BB%E5%8A%A1%E6%94%AF%E6%8C%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>最多最全的任务支持</h2>
+
+<p>我们刚刚发布 FastReID v0.1 时，他只是作为一个重识别的 toolbox，支持重识别的业务模型和 research。</p>
+
+<p>后面考虑到各种识别任务的模型结构都长得差不多，所以我们希望 FastReID 只需要稍微 customize 就能够支持各种不同的任务。</p>
+
+<p>但是每种任务都有自己的一些特殊性，把这些特殊性全部往 FastReID 里面塞肯定是不现实的，为了不引入冗余性，我们通过对每种 task 单独构建 <code class="language-plaintext highlighter-rouge">project</code> 的方式对 FastReID 进行扩展，同时也相当于提供了一些扩展任务的参考写法和 example，毕竟我们的文档一直没有时间写(逃~)。</p>
+
+<p>最后呈现在 FastReID 的 projects 中一共可以支持 image classification (FastClas), attribute recognition (FastAttr), face recognition (FastFace) 和 fine-grained image retrieval (FastRetri) 4 种比较常见的识别任务，同时我们也分别跑了几个 benchmark 以保证代码的实现是正确的。</p>
+
+<p><img src="/blogpages/images/fastreid-v1/image-retrieval.jpg" alt="" title="Image Retrieval"></p>
+
+<p><img src="/blogpages/images/fastreid-v1/face.jpg" alt="" title="Face Recognition"></p>
+
+<p>同时大家在 customize 自己的 project 时，也可以将这些 projects 中的东西进行排列组合来实现新的功能，比如将 FastDistill 和 FastFace 组合在一起，就可以实现人脸识别中的模型蒸馏。</p>
+
+<h2 id="naic20-reid-比赛">
+<a class="anchor" href="#naic20-reid-%E6%AF%94%E8%B5%9B" aria-hidden="true"><span class="octicon octicon-link"></span></a>NAIC20 reID 比赛</h2>
+<p>借助 FastReID 高效的分布式训练模式和超参搜索等功能，我们拿到了 naic20 比赛的第一名，比赛方案也开源在 FastReID 的 <code class="language-plaintext highlighter-rouge">projects/NAIC20</code> 中。
+一些比赛中的 tricks 已经直接集成到了 FastReID 中，有空再专门写一下比赛的方案吧，总结起来就是大模型+大 input size + ensemble。</p>
+
+<h2 id="总结">
+<a class="anchor" href="#%E6%80%BB%E7%BB%93" aria-hidden="true"><span class="octicon octicon-link"></span></a>总结</h2>
+
+<p>一套好的 codebase 对于大家做实验和做业务都起着事半功倍的效果，大家也越来越发现代码的工程质量不仅影响业务模型的研发效率和性能，同时还对研究工作有着影响。</p>
+
+<p>FastReID 不仅仅希望能给 ReID 社区提供稳定高效的代码实现，同时也希望大家能够基于 FastReID 去做算法研究，同时扩展到更多其他任务上。</p>
+
+<p>也希望大家能够踊跃地在 GitHub 上提 issue 和 PR，让我们一起把 FastReID 越做越好。</p>
+
+<p>在此感谢 JD AI 组的同事和老师的支持，正是因为大家的努力让 FastReID 变得更好，并且科研项目也都在 FastReID 上取得了更好的性能。</p>
+
+<h2 id="reference">
+<a class="anchor" href="#reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>Reference</h2>
+
+<ul>
+  <li>
+    <p>FastReID: A Pytorch Toolbox for General Instance Re-identification, He, Lingxiao and Liao, Xingyu and Liu, Wu and Liu, Xinchen and Cheng, Peng and Mei, Tao, arXiv preprint arXiv:2006.02631, 2020</p>
+  </li>
+  <li>
+    <p>Deep spatial feature reconstruction for partial person re-identification: Alignment-free approach, He, Lingxiao and Liang, Jian and Li, Haiqing and Sun, Zhenan, CVPR2018</p>
+  </li>
+  <li>
+    <p>Foreground-aware Pyramid Reconstruction for Alignment-free Occluded Person Re-identification, He, Lingxiao and Wang, Yinggang and Liu, Wu and Zhao, He and Sun, Zhenan and Feng, Jiashi, ICCV2019</p>
+  </li>
+  <li>
+    <p>Black Re-ID: A Head-shoulder Descriptor for the Challenging Problem of Person Re-Identification, Boqiang, Xu and Lingxiao, He and Xingyu, Liao and Wu,Liu and Zhenan, Sun and Tao, Mei, ACM MM2020</p>
+  </li>
+  <li>
+    <p>A Comprehensive Overhaul of Feature Distillation, Heo, Byeongho and Kim, Jeesoo and Yun, Sangdoo and Park, Hyojin and Kwak, Nojun and Choi, Jin Young</p>
+  </li>
+  <li>
+    <p>Distilling the Knowledge in a Neural Network, Geoffrey Hinton, Oriol Vinyals, Jeff Dean</p>
+  </li>
+  <li>
+    <p>Tune: A Research Platform for Distributed Model Selection and Training, Liaw, Richard and Liang, Eric and Nishihara, Robert and Moritz, Philipp and Gonzalez, Joseph E and Stoica, Ion</p>
+  </li>
+  <li>
+    <p>ArcFace: Additive Angular Margin Loss for Deep Face Recognition, Jiankang Deng, Jia Guo, Niannan Xue, Stefanos Zafeiriou</p>
+  </li>
+  <li>
+    <p>PaddleClas: https://github.com/PaddlePaddle/PaddleClas</p>
+  </li>
+</ul>
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="L1aoXingyu/blogpages"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/blogpages/reid/fastreid/2021/04/28/fastreid-v1.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blogpages/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blogpages/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blogpages/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>I want to create some new things! Happy blogging &amp; coding... ❤ | Scenius</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/L1aoXingyu" title="L1aoXingyu"><svg class="svg-icon grey"><use xlink:href="/blogpages/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/xingyu_liao" title="xingyu_liao"><svg class="svg-icon grey"><use xlink:href="/blogpages/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
