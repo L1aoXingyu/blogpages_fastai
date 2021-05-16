@@ -61,7 +61,7 @@ Parameter Servers 的核心概念在 [[Smola & Narayanamurthy, 2010]](https://al
 - device[0] 会被更多的使用，从而导致 bottleneck 出现；
 - 负载均衡问题，不同的卡所占的显存不一致；
 - 通信开销很大，同步策略非常慢，假设有 k 个 GPU，完成一次通信需要时间 t ，如果使用 PS 算法，总共耗时 $T = 2(k-1) t$
-- 在 PyTorc 的实现中，使用 Python 单进程，会有 GIL 锁，并不是真正的并发执行
+- 在 PyTorch 的实现中，使用 Python 单进程，会有 GIL 锁，并不是真正的并发执行
 
 PyTorch 在很早的版本引入了上述实现方式的 DataParallel，不过他们也意识到了这个版本的效率问题，所以后续版本中提出了一个效率更高的数据并行方法 DistributedDataParallel，同时在目前 PyTorch 1.8 版本中官方也更推荐使用 DistributedDataParallel 这种方式。
 
