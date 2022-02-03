@@ -5,7 +5,7 @@ description: 黑客与画家读后感
 comments: true
 categories: [book review, programming]
 title: "《黑客与画家》读后感"
-image: images/hacker_and_painters.jpeg
+image: images/hacker_and_painters.png
 ---
 
 最近读完了一本书，叫《黑客与画家》，其作者 Paul Graham 被誉为硅谷创业之父，是 Lisp 的狂热爱好者，同时使用 Lisp 创立了 Viaweb，帮助个人用户在网上开店，这也是第一个互联网应用程序，在 1998 年被 Yahoo！公司收购。
