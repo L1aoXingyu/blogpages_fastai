@@ -256,11 +256,13 @@ window.onload = wrap_img;
   400f3a:	eb db                	jmp    400f17 &lt;phase_2+0x1b&gt;
 </code></pre>
 
-<p>其中 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是<strong>4个字节</strong>，那么<code class="language-plaintext highlighter-rouge">0x4(%rsx)</code> 表示第二个输入的数字，<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code> 表示第六个输入的数字。</p>
+<p>其中 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是<strong>4个字节</strong>，那么<code class="language-plaintext highlighter-rouge">0x4(%rsx)</code> 表示第二个输入的数字，<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code> 并不是表示第六个输入的数字，而是表示第六个数字之后的地址，后面会讲为什么需要这样设置。</p>
 
 <p>可以发现代码又跳转到 <code class="language-plaintext highlighter-rouge">0x400f17</code> 地址，首先 <code class="language-plaintext highlighter-rouge">mov  -0x4(%rbx),%eax</code> 即可将第一个输入的数字放到寄存器 <code class="language-plaintext highlighter-rouge">%eax</code> 中，然后 <code class="language-plaintext highlighter-rouge">add %eax,%eax</code> 其实就是将数字<code class="language-plaintext highlighter-rouge">*2</code>，然后判断 <code class="language-plaintext highlighter-rouge">%eax</code> 和 <code class="language-plaintext highlighter-rouge">(%rbx)</code> 是否相等，如果不相等则炸弹会爆炸，由此可以看出我们需要输入6个数字，第一个是1，然后每一个后面的数字都是前面数字的两倍。</p>
 
 <p>最后可以通过 <code class="language-plaintext highlighter-rouge">add $0x4,%rbx</code> 不断遍历下一个元素，然后通过 <code class="language-plaintext highlighter-rouge">%rbp</code> 和 <code class="language-plaintext highlighter-rouge">%rbx</code> 是否相等的判断来决定跳出循环，注意 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个数字，那么<code class="language-plaintext highlighter-rouge">0x14(%rsp)</code>表示第六个数字，所以<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code>表示第六个数字之后的地址，通过和这个地址作比较，可以确保遍历完所有的6个数字。</p>
+
+<p>最后这6个数字为 <code class="language-plaintext highlighter-rouge">1 2 4 8 16 32</code>，输入这些数字即可解除第二阶段的炸弹。</p>
 
 
   </div><!-- from https://github.com/utterance/utterances -->
