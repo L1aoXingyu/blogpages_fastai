@@ -93,7 +93,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      1 min read
+      3 min read
     
 </span></p>
 
@@ -121,6 +121,7 @@ window.onload = wrap_img;
     <ul class="section-nav">
 <li class="toc-entry toc-h3"><a href="#0x0-introduction">0x0 Introduction</a></li>
 <li class="toc-entry toc-h3"><a href="#0x10-phase_1">0x1.0 phase_1</a></li>
+<li class="toc-entry toc-h3"><a href="#0x11-phase_2">0x1.1 phase_2</a></li>
 </ul><h3 id="0x0-introduction">
 <a class="anchor" href="#0x0-introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0 Introduction</h3>
 
@@ -195,6 +196,71 @@ window.onload = wrap_img;
 
 <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Phase</span> <span class="mi">1</span> <span class="nx">defused</span><span class="p">.</span> <span class="nx">How</span> <span class="nx">about</span> <span class="nx">the</span> <span class="nx">next</span> <span class="nx">one</span><span class="p">?</span>
 </code></pre></div></div>
+
+<h3 id="0x11-phase_2">
+<a class="anchor" href="#0x11-phase_2" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.1 phase_2</h3>
+
+<p>接着需要输入第二段字符，首先可以通过 <code class="language-plaintext highlighter-rouge">b phase_2</code> 直接在第二阶段开始时打上断点，然后随意输入一段字符以进入这个函数。</p>
+
+<p>通过下面的汇编代码片段，发现调用了函数 <code class="language-plaintext highlighter-rouge">read_six_numbers</code>，其实通过函数名就可以发现这个函数需要输入6个数字，接着紧跟着的代码是执行 <code class="language-plaintext highlighter-rouge">cmpl $0x1, (%rsp)</code>，如果相等直接跳到 <code class="language-plaintext highlighter-rouge">0x400f30</code>，否则会调用 <code class="language-plaintext highlighter-rouge">explode_bomb</code>，这说明了要求输入的第一个数字必须是 1，否则炸弹会爆炸。</p>
+
+<pre><code class="language-assembly">0000000000400efc &lt;phase_2&gt;:
+  400efc:	55                   	push   %rbp
+  400efd:	53                   	push   %rbx
+  400efe:	48 83 ec 28          	sub    $0x28,%rsp
+  400f02:	48 89 e6             	mov    %rsp,%rsi
+  400f05:	e8 52 05 00 00       	callq  40145c &lt;read_six_numbers&gt;
+  400f0a:	83 3c 24 01          	cmpl   $0x1,(%rsp)
+  400f0e:	74 20                	je     400f30 &lt;phase_2+0x34&gt;
+  400f10:	e8 25 05 00 00       	callq  40143a &lt;explode_bomb&gt;
+  400f15:	eb 19                	jmp    400f30 &lt;phase_2+0x34&gt;
+</code></pre>
+
+<p>为了进一步确定 <code class="language-plaintext highlighter-rouge">read_six_numbers</code> 是要求我们输入6个数字，我们搜索对应的函数名，可以获得下面的汇编代码段</p>
+
+<pre><code class="language-assembly">000000000040145c &lt;read_six_numbers&gt;:
+  40145c:	48 83 ec 18          	sub    $0x18,%rsp
+  401460:	48 89 f2             	mov    %rsi,%rdx
+  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx
+  401467:	48 8d 46 14          	lea    0x14(%rsi),%rax
+  40146b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+  401470:	48 8d 46 10          	lea    0x10(%rsi),%rax
+  401474:	48 89 04 24          	mov    %rax,(%rsp)
+  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9
+  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8
+  401480:	be c3 25 40 00       	mov    $0x4025c3,%esi
+  401485:	b8 00 00 00 00       	mov    $0x0,%eax
+  40148a:	e8 61 f7 ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt;
+  40148f:	83 f8 05             	cmp    $0x5,%eax
+  401492:	7f 05                	jg     401499 &lt;read_six_numbers+0x3d&gt;
+  401494:	e8 a1 ff ff ff       	callq  40143a &lt;explode_bomb&gt;
+  401499:	48 83 c4 18          	add    $0x18,%rsp
+  40149d:	c3                   	retq   
+</code></pre>
+
+<p>注意 <code class="language-plaintext highlighter-rouge">0x40148f</code> 对应的代码行，scanf 返回的结果和 5 进行比较，需要比 5 大，否则炸弹会爆炸。</p>
+
+<p>接着代码会跳到 <code class="language-plaintext highlighter-rouge">0x400f30</code>，继续往下找对应的代码，会发现这一段代码比较重要。</p>
+
+<pre><code class="language-assembly">  400f17:	8b 43 fc             	mov    -0x4(%rbx),%eax    
+  400f1a:	01 c0                	add    %eax,%eax
+  400f1c:	39 03                	cmp    %eax,(%rbx)
+  400f1e:	74 05                	je     400f25 &lt;phase_2+0x29&gt;
+  400f20:	e8 15 05 00 00       	callq  40143a &lt;explode_bomb&gt;
+  400f25:	48 83 c3 04          	add    $0x4,%rbx
+  400f29:	48 39 eb             	cmp    %rbp,%rbx
+  400f2c:	75 e9                	jne    400f17 &lt;phase_2+0x1b&gt;
+  400f2e:	eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt;
+  400f30:	48 8d 5c 24 04       	lea    0x4(%rsp),%rbx
+  400f35:	48 8d 6c 24 18       	lea    0x18(%rsp),%rbp
+  400f3a:	eb db                	jmp    400f17 &lt;phase_2+0x1b&gt;
+</code></pre>
+
+<p>其中 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是<strong>4个字节</strong>，那么<code class="language-plaintext highlighter-rouge">0x4(%rsx)</code> 表示第二个输入的数字，<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code> 表示第六个输入的数字。</p>
+
+<p>可以发现代码又跳转到 <code class="language-plaintext highlighter-rouge">0x400f17</code> 地址，首先 <code class="language-plaintext highlighter-rouge">mov  -0x4(%rbx),%eax</code> 即可将第一个输入的数字放到寄存器 <code class="language-plaintext highlighter-rouge">%eax</code> 中，然后 <code class="language-plaintext highlighter-rouge">add %eax,%eax</code> 其实就是将数字<code class="language-plaintext highlighter-rouge">*2</code>，然后判断 <code class="language-plaintext highlighter-rouge">%eax</code> 和 <code class="language-plaintext highlighter-rouge">(%rbx)</code> 是否相等，如果不相等则炸弹会爆炸，由此可以看出我们需要输入6个数字，第一个是1，然后每一个后面的数字都是前面数字的两倍。</p>
+
+<p>最后可以通过 <code class="language-plaintext highlighter-rouge">add $0x4,%rbx</code> 不断遍历下一个元素，然后通过 <code class="language-plaintext highlighter-rouge">%rbp</code> 和 <code class="language-plaintext highlighter-rouge">%rbx</code> 是否相等的判断来决定跳出循环，注意 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个数字，那么<code class="language-plaintext highlighter-rouge">0x14(%rsp)</code>表示第六个数字，所以<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code>表示第六个数字之后的地址，通过和这个地址作比较，可以确保遍历完所有的6个数字。</p>
 
 
   </div><!-- from https://github.com/utterance/utterances -->
