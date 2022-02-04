@@ -85,3 +85,70 @@ $6 = 0x402400 "Border relations with Canada have never been better."
 Phase 1 defused. How about the next one?
 ```
 
+### 0x1.1 phase_2
+
+接着需要输入第二段字符，首先可以通过 `b phase_2` 直接在第二阶段开始时打上断点，然后随意输入一段字符以进入这个函数。
+
+通过下面的汇编代码片段，发现调用了函数 `read_six_numbers`，其实通过函数名就可以发现这个函数需要输入6个数字，接着紧跟着的代码是执行 `cmpl $0x1, (%rsp)`，如果相等直接跳到 `0x400f30`，否则会调用 `explode_bomb`，这说明了要求输入的第一个数字必须是 1，否则炸弹会爆炸。
+
+```assembly
+0000000000400efc <phase_2>:
+  400efc:	55                   	push   %rbp
+  400efd:	53                   	push   %rbx
+  400efe:	48 83 ec 28          	sub    $0x28,%rsp
+  400f02:	48 89 e6             	mov    %rsp,%rsi
+  400f05:	e8 52 05 00 00       	callq  40145c <read_six_numbers>
+  400f0a:	83 3c 24 01          	cmpl   $0x1,(%rsp)
+  400f0e:	74 20                	je     400f30 <phase_2+0x34>
+  400f10:	e8 25 05 00 00       	callq  40143a <explode_bomb>
+  400f15:	eb 19                	jmp    400f30 <phase_2+0x34>
+```
+
+为了进一步确定 `read_six_numbers` 是要求我们输入6个数字，我们搜索对应的函数名，可以获得下面的汇编代码段
+
+```assembly
+000000000040145c <read_six_numbers>:
+  40145c:	48 83 ec 18          	sub    $0x18,%rsp
+  401460:	48 89 f2             	mov    %rsi,%rdx
+  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx
+  401467:	48 8d 46 14          	lea    0x14(%rsi),%rax
+  40146b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+  401470:	48 8d 46 10          	lea    0x10(%rsi),%rax
+  401474:	48 89 04 24          	mov    %rax,(%rsp)
+  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9
+  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8
+  401480:	be c3 25 40 00       	mov    $0x4025c3,%esi
+  401485:	b8 00 00 00 00       	mov    $0x0,%eax
+  40148a:	e8 61 f7 ff ff       	callq  400bf0 <__isoc99_sscanf@plt>
+  40148f:	83 f8 05             	cmp    $0x5,%eax
+  401492:	7f 05                	jg     401499 <read_six_numbers+0x3d>
+  401494:	e8 a1 ff ff ff       	callq  40143a <explode_bomb>
+  401499:	48 83 c4 18          	add    $0x18,%rsp
+  40149d:	c3                   	retq   
+```
+
+注意 `0x40148f` 对应的代码行，scanf 返回的结果和 5 进行比较，需要比 5 大，否则炸弹会爆炸。
+
+接着代码会跳到 `0x400f30`，继续往下找对应的代码，会发现这一段代码比较重要。
+
+```assembly
+  400f17:	8b 43 fc             	mov    -0x4(%rbx),%eax    
+  400f1a:	01 c0                	add    %eax,%eax
+  400f1c:	39 03                	cmp    %eax,(%rbx)
+  400f1e:	74 05                	je     400f25 <phase_2+0x29>
+  400f20:	e8 15 05 00 00       	callq  40143a <explode_bomb>
+  400f25:	48 83 c3 04          	add    $0x4,%rbx
+  400f29:	48 39 eb             	cmp    %rbp,%rbx
+  400f2c:	75 e9                	jne    400f17 <phase_2+0x1b>
+  400f2e:	eb 0c                	jmp    400f3c <phase_2+0x40>
+  400f30:	48 8d 5c 24 04       	lea    0x4(%rsp),%rbx
+  400f35:	48 8d 6c 24 18       	lea    0x18(%rsp),%rbp
+  400f3a:	eb db                	jmp    400f17 <phase_2+0x1b>
+```
+
+其中 `(%rsp)` 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是**4个字节**，那么`0x4(%rsx)` 表示第二个输入的数字，`0x18(%rsp)` 表示第六个输入的数字。
+
+可以发现代码又跳转到 `0x400f17` 地址，首先 `mov  -0x4(%rbx),%eax` 即可将第一个输入的数字放到寄存器 `%eax` 中，然后 `add %eax,%eax` 其实就是将数字`*2`，然后判断 `%eax` 和 `(%rbx)` 是否相等，如果不相等则炸弹会爆炸，由此可以看出我们需要输入6个数字，第一个是1，然后每一个后面的数字都是前面数字的两倍。
+
+最后可以通过 `add $0x4,%rbx` 不断遍历下一个元素，然后通过 `%rbp` 和 `%rbx` 是否相等的判断来决定跳出循环，注意 `(%rsp)` 表示第一个数字，那么`0x14(%rsp)`表示第六个数字，所以`0x18(%rsp)`表示第六个数字之后的地址，通过和这个地址作比较，可以确保遍历完所有的6个数字。
+
