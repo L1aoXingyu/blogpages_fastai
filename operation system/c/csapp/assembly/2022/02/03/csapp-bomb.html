@@ -122,6 +122,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h3"><a href="#0x0-introduction">0x0 Introduction</a></li>
 <li class="toc-entry toc-h3"><a href="#0x10-phase_1">0x1.0 phase_1</a></li>
 <li class="toc-entry toc-h3"><a href="#0x11-phase_2">0x1.1 phase_2</a></li>
+<li class="toc-entry toc-h3"><a href="#0x12-phase_3">0x1.2 phase_3</a></li>
 </ul><h3 id="0x0-introduction">
 <a class="anchor" href="#0x0-introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0 Introduction</h3>
 
@@ -264,6 +265,38 @@ window.onload = wrap_img;
 
 <p>最后这6个数字为 <code class="language-plaintext highlighter-rouge">1 2 4 8 16 32</code>，输入这些数字即可解除第二阶段的炸弹。</p>
 
+<h3 id="0x12-phase_3">
+<a class="anchor" href="#0x12-phase_3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.2 phase_3</h3>
+
+<p>接着需要输入第三段字符，首先可以通过 <code class="language-plaintext highlighter-rouge">b phase_3</code> 直接在第三阶段开始的时候打上断点，然后输入一段字符以进入这个函数。</p>
+
+<p>通过阅读下面这段汇编代码，可以发现，<code class="language-plaintext highlighter-rouge">scanf</code> 的返回值需要大于<code class="language-plaintext highlighter-rouge">1</code>，否则炸弹就会爆炸，这也就是说至少需要输入<code class="language-plaintext highlighter-rouge">2</code>个数字。</p>
+
+<p>接着继续查看下面的代码，发现需要比较 <code class="language-plaintext highlighter-rouge">$0x7</code> 和 <code class="language-plaintext highlighter-rouge">0x8(%rsp)</code>，通过 <code class="language-plaintext highlighter-rouge">x (%rsp+0x8)</code> ，可以发现<code class="language-plaintext highlighter-rouge">0x8(%rsp)</code> 表示第一个数字的地址，进一步可以发现 <code class="language-plaintext highlighter-rouge">0xc(%rsp)</code>表示第二个数字的地址，地址差距是4个字节，说明是 int32 的数据类型。</p>
+
+<pre><code class="language-assembly">  400f6a:	83 7c 24 08 07       	cmpl   $0x7,0x8(%rsp)
+  400f6f:	77 3c                	ja     400fad &lt;phase_3+0x6a&gt;
+  ...
+  400fad:	e8 88 04 00 00       	callq  40143a &lt;explode_bomb&gt;
+</code></pre>
+
+<p>所以这一段代码即表示如果输入的第一个参数比<code class="language-plaintext highlighter-rouge">7</code>大，则会跳到 <code class="language-plaintext highlighter-rouge">0x400fad</code> 这个位置继续执行，而这个位置执行的函数为 <code class="language-plaintext highlighter-rouge">explode_bomb</code>，这也就是间接说明了需要输入的第一个数字<code class="language-plaintext highlighter-rouge">&lt;=7</code>。</p>
+
+<p>接着继续执行下面的代码，首先将第一个数字放到寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 中，然后执行 <code class="language-plaintext highlighter-rouge">jmpq</code> 指令，跳转的地址是 <code class="language-plaintext highlighter-rouge">0x402470 + 8 * $rax</code> 位置的指针指向的内容，这里我们可以通过在 <code class="language-plaintext highlighter-rouge">gdb</code> 中输入 <code class="language-plaintext highlighter-rouge">ni</code> 进行单步执行，来判断最终代码跳转的位置，如果输入的第一个数字是<code class="language-plaintext highlighter-rouge">1</code>，那么也可以通过<code class="language-plaintext highlighter-rouge">p/x *(0x402470+8)</code>或者是 <code class="language-plaintext highlighter-rouge">x/x 0x402470+8</code> 来计算出具体的位置。</p>
+
+<pre><code class="language-assembly">  400f71:	8b 44 24 08          	mov    0x8(%rsp),%eax
+  400f75:	ff 24 c5 70 24 40 00 	jmpq   *0x402470(,%rax,8)
+</code></pre>
+
+<p>接着直接跳到对应的位置去查看代码，可以发现下面的代码需要比较输入的第二个数字和 <code class="language-plaintext highlighter-rouge">0x137</code> 的大小，因为首先通过 <code class="language-plaintext highlighter-rouge">mov $0x137,%eax</code> 将 <code class="language-plaintext highlighter-rouge">0x137</code> 移动到寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 中，然后通过 <code class="language-plaintext highlighter-rouge">cmp 0xc(%rsp),%eax</code> 来比较寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 的值以及地址 <code class="language-plaintext highlighter-rouge">0xc(%rsp)</code>  指向内存的值，从前面可以知道这是第二个输入的数字。</p>
+
+<pre><code class="language-assembly">  400fb9:	b8 37 01 00 00       	mov    $0x137,%eax
+  400fbe:	3b 44 24 0c          	cmp    0xc(%rsp),%eax
+  400fc2:	74 05                	je     400fc9 &lt;phase_3+0x86&gt;
+  400fc4:	e8 71 04 00 00       	callq  40143a &lt;explode_bomb&gt;
+</code></pre>
+
+<p>所以输入的第二个数字换成十进制则是 <code class="language-plaintext highlighter-rouge">311</code> ，于是输入 <code class="language-plaintext highlighter-rouge">1 311</code> 即可接触第三个炸弹，因为要求第一个数字 <code class="language-plaintext highlighter-rouge">&lt;=7</code>，所以这里只描述了一种可能性，也可以尝试第一个数字输入是<code class="language-plaintext highlighter-rouge">2</code>，会发现程序会跳到 <code class="language-plaintext highlighter-rouge">0x400f83</code>，需要输入的第二个数字是 <code class="language-plaintext highlighter-rouge">707</code>.</p>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
