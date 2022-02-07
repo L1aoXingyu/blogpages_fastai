@@ -93,7 +93,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      3 min read
+      6 min read
     
 </span></p>
 
@@ -123,6 +123,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h3"><a href="#0x10-phase_1">0x1.0 phase_1</a></li>
 <li class="toc-entry toc-h3"><a href="#0x11-phase_2">0x1.1 phase_2</a></li>
 <li class="toc-entry toc-h3"><a href="#0x12-phase_3">0x1.2 phase_3</a></li>
+<li class="toc-entry toc-h3"><a href="#0x13-phase_4">0x1.3 phase_4</a></li>
 </ul><h3 id="0x0-introduction">
 <a class="anchor" href="#0x0-introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0 Introduction</h3>
 
@@ -297,6 +298,92 @@ window.onload = wrap_img;
 </code></pre>
 
 <p>所以输入的第二个数字换成十进制则是 <code class="language-plaintext highlighter-rouge">311</code> ，于是输入 <code class="language-plaintext highlighter-rouge">1 311</code> 即可接触第三个炸弹，因为要求第一个数字 <code class="language-plaintext highlighter-rouge">&lt;=7</code>，所以这里只描述了一种可能性，也可以尝试第一个数字输入是<code class="language-plaintext highlighter-rouge">2</code>，会发现程序会跳到 <code class="language-plaintext highlighter-rouge">0x400f83</code>，需要输入的第二个数字是 <code class="language-plaintext highlighter-rouge">707</code>.</p>
+
+<h3 id="0x13-phase_4">
+<a class="anchor" href="#0x13-phase_4" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 phase_4</h3>
+
+<p>下一个阶段主要考察了对递归函数的 reverse engineering，首先在 <code class="language-plaintext highlighter-rouge">phase_4</code> 开始阶段打上断点，然后运行进入，首先查看下面这段汇编代码</p>
+
+<pre><code class="language-assembly">  40101a:	be cf 25 40 00       	mov    $0x4025cf,%esi
+  40101f:	b8 00 00 00 00       	mov    $0x0,%eax
+  401024:	e8 c7 fb ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt;
+  401029:	83 f8 02             	cmp    $0x2,%eax
+  40102c:	75 07                	jne    401035 &lt;phase_4+0x29&gt;
+  40102e:	83 7c 24 08 0e       	cmpl   $0xe,0x8(%rsp)
+  401033:	76 05                	jbe    40103a &lt;phase_4+0x2e&gt;
+  401035:	e8 00 04 00 00       	callq  40143a &lt;explode_bomb&gt;
+</code></pre>
+
+<p>可以发现需要我们通过 <code class="language-plaintext highlighter-rouge">scanf</code> 输入一些内容，通过在 <code class="language-plaintext highlighter-rouge">gdb</code> 中查看 <code class="language-plaintext highlighter-rouge">scanf</code> 需要的输入个数和类型如下</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="nx">s</span> <span class="mh">0x4025cf</span>
+<span class="mh">0x4025cf</span><span class="p">:</span>       <span class="dl">"</span><span class="s2">%d %d</span><span class="dl">"</span>
+</code></pre></div></div>
+
+<p>说明需要输入两个 <code class="language-plaintext highlighter-rouge">int</code> 类型的数字，同时通过 <code class="language-plaintext highlighter-rouge">cmp $0x2,%eax</code> 也可以证实这点，另外还通过 <code class="language-plaintext highlighter-rouge">cmpl $0xe,0x8(%rsp)</code> 要求输入的第一个数字必须要 <code class="language-plaintext highlighter-rouge">&lt;=14</code>，接着代码会跳到地址 <code class="language-plaintext highlighter-rouge">40103a</code> 继续执行。</p>
+
+<p>然后查看对应位置的汇编代码，发现整体逻辑是调用 <code class="language-plaintext highlighter-rouge">func4</code>，判断返回值是否为<code class="language-plaintext highlighter-rouge">0</code>，如果不是 <code class="language-plaintext highlighter-rouge">0</code>，那么直接跳到 <code class="language-plaintext highlighter-rouge">0x401058</code> 就触发爆炸，如果是 <code class="language-plaintext highlighter-rouge">0</code> 则可以继续判断输入的第二个数字是否是 <code class="language-plaintext highlighter-rouge">0</code>，如果是 <code class="language-plaintext highlighter-rouge">0</code>，那么顺利解除炸弹。</p>
+
+<pre><code class="language-assembly">  40103a:	ba 0e 00 00 00       	mov    $0xe,%edx
+  40103f:	be 00 00 00 00       	mov    $0x0,%esi
+  401044:	8b 7c 24 08          	mov    0x8(%rsp),%edi
+  401048:	e8 81 ff ff ff       	callq  400fce &lt;func4&gt;
+  40104d:	85 c0                	test   %eax,%eax
+  40104f:	75 07                	jne    401058 &lt;phase_4+0x4c&gt;
+  401051:	83 7c 24 0c 00       	cmpl   $0x0,0xc(%rsp)
+  401056:	74 05                	je     40105d &lt;phase_4+0x51&gt;
+  401058:	e8 dd 03 00 00       	callq  40143a &lt;explode_bomb&gt;
+</code></pre>
+
+<p>看到这里，整体已经比较清晰了，输入两个数字，第一个需要不比 <code class="language-plaintext highlighter-rouge">14</code> 大，第二个必须是<code class="language-plaintext highlighter-rouge">0</code>，然后调用 <code class="language-plaintext highlighter-rouge">func4</code> 需要保证返回值是 <code class="language-plaintext highlighter-rouge">0</code>，而其输入的参数分别在寄存器 <code class="language-plaintext highlighter-rouge">%rdi, %rsi, %rdx</code>，继续分析这些寄存器的获得方法，可以发现，第一个参数就是我们输入的第一个数字，第二个参数是 <code class="language-plaintext highlighter-rouge">0</code>，第三个参数是 <code class="language-plaintext highlighter-rouge">14</code>，所以接下来只需要进一步分析 <code class="language-plaintext highlighter-rouge">func4</code> 即可。</p>
+
+<p>在汇编代码中搜索 <code class="language-plaintext highlighter-rouge">func4</code> 即可找到对应的代码片段</p>
+
+<pre><code class="language-assembly">0000000000400fce &lt;func4&gt;:
+  400fce:	48 83 ec 08          	sub    $0x8,%rsp
+  400fd2:	89 d0                	mov    %edx,%eax
+  400fd4:	29 f0                	sub    %esi,%eax
+  400fd6:	89 c1                	mov    %eax,%ecx
+  400fd8:	c1 e9 1f             	shr    $0x1f,%ecx
+  400fdb:	01 c8                	add    %ecx,%eax
+  400fdd:	d1 f8                	sar    %eax
+  400fdf:	8d 0c 30             	lea    (%rax,%rsi,1),%ecx
+  400fe2:	39 f9                	cmp    %edi,%ecx
+  400fe4:	7e 0c                	jle    400ff2 &lt;func4+0x24&gt;
+  400fe6:	8d 51 ff             	lea    -0x1(%rcx),%edx
+  400fe9:	e8 e0 ff ff ff       	callq  400fce &lt;func4&gt;
+  400fee:	01 c0                	add    %eax,%eax
+  400ff0:	eb 15                	jmp    401007 &lt;func4+0x39&gt;
+  400ff2:	b8 00 00 00 00       	mov    $0x0,%eax
+  400ff7:	39 f9                	cmp    %edi,%ecx
+  400ff9:	7d 0c                	jge    401007 &lt;func4+0x39&gt;
+  400ffb:	8d 71 01             	lea    0x1(%rcx),%esi
+  400ffe:	e8 cb ff ff ff       	callq  400fce &lt;func4&gt;
+  401003:	8d 44 00 01          	lea    0x1(%rax,%rax,1),%eax
+  401007:	48 83 c4 08          	add    $0x8,%rsp
+  40100b:	c3                   	retq   
+</code></pre>
+
+<p>整体代码并不长，但是里面有两处存在递归调用，如果使用 <code class="language-plaintext highlighter-rouge">gdb</code> 进行单步调试会比较绕，所以这里直接对汇编代码进行反向工程，获得对应的c代码如下</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">func4</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">a2</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">a2</span> <span class="o">-</span> <span class="n">a1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">m</span> <span class="o">+</span> <span class="n">a1</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">func4</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">a2</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">func4</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">m</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>因为该函数需要返回的值是 0，所以只能走 <code class="language-plaintext highlighter-rouge">n==x</code> 和 <code class="language-plaintext highlighter-rouge">n&gt;x</code> 这两个分支，否则会返回 <code class="language-plaintext highlighter-rouge">2*m+1</code>，那么结果必然不会是 <code class="language-plaintext highlighter-rouge">0</code>，而由前面知道 <code class="language-plaintext highlighter-rouge">a1=0, a2=14</code>，所以不断计算 <code class="language-plaintext highlighter-rouge">n</code> 的值即可求出所有符合条件的输入 x，如果嫌麻烦，也可以直接把运行这段代码来找符合条件的值。</p>
+
+<p>最终符合条件的值是 <code class="language-plaintext highlighter-rouge">0,1,3,7</code>，输入这四个值中的任意一个作为第一个数字输入，均可成功拆除炸弹。</p>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
