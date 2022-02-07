@@ -188,3 +188,93 @@ Phase 1 defused. How about the next one?
 ```
 
 所以输入的第二个数字换成十进制则是 `311` ，于是输入 `1 311` 即可接触第三个炸弹，因为要求第一个数字 `<=7`，所以这里只描述了一种可能性，也可以尝试第一个数字输入是`2`，会发现程序会跳到 `0x400f83`，需要输入的第二个数字是 `707`.
+
+### 0x1.3 phase_4
+
+下一个阶段主要考察了对递归函数的 reverse engineering，首先在 `phase_4` 开始阶段打上断点，然后运行进入，首先查看下面这段汇编代码
+
+```assembly
+  40101a:	be cf 25 40 00       	mov    $0x4025cf,%esi
+  40101f:	b8 00 00 00 00       	mov    $0x0,%eax
+  401024:	e8 c7 fb ff ff       	callq  400bf0 <__isoc99_sscanf@plt>
+  401029:	83 f8 02             	cmp    $0x2,%eax
+  40102c:	75 07                	jne    401035 <phase_4+0x29>
+  40102e:	83 7c 24 08 0e       	cmpl   $0xe,0x8(%rsp)
+  401033:	76 05                	jbe    40103a <phase_4+0x2e>
+  401035:	e8 00 04 00 00       	callq  40143a <explode_bomb>
+```
+
+可以发现需要我们通过 `scanf` 输入一些内容，通过在 `gdb` 中查看 `scanf` 需要的输入个数和类型如下
+
+```javascript
+(gdb) x /s 0x4025cf
+0x4025cf:       "%d %d"
+```
+
+说明需要输入两个 `int` 类型的数字，同时通过 `cmp $0x2,%eax` 也可以证实这点，另外还通过 `cmpl $0xe,0x8(%rsp)` 要求输入的第一个数字必须要 `<=14`，接着代码会跳到地址 `40103a` 继续执行。
+
+然后查看对应位置的汇编代码，发现整体逻辑是调用 `func4`，判断返回值是否为`0`，如果不是 `0`，那么直接跳到 `0x401058` 就触发爆炸，如果是 `0` 则可以继续判断输入的第二个数字是否是 `0`，如果是 `0`，那么顺利解除炸弹。
+
+```assembly
+  40103a:	ba 0e 00 00 00       	mov    $0xe,%edx
+  40103f:	be 00 00 00 00       	mov    $0x0,%esi
+  401044:	8b 7c 24 08          	mov    0x8(%rsp),%edi
+  401048:	e8 81 ff ff ff       	callq  400fce <func4>
+  40104d:	85 c0                	test   %eax,%eax
+  40104f:	75 07                	jne    401058 <phase_4+0x4c>
+  401051:	83 7c 24 0c 00       	cmpl   $0x0,0xc(%rsp)
+  401056:	74 05                	je     40105d <phase_4+0x51>
+  401058:	e8 dd 03 00 00       	callq  40143a <explode_bomb>
+```
+
+看到这里，整体已经比较清晰了，输入两个数字，第一个需要不比 `14` 大，第二个必须是`0`，然后调用 `func4` 需要保证返回值是 `0`，而其输入的参数分别在寄存器 `%rdi, %rsi, %rdx`，继续分析这些寄存器的获得方法，可以发现，第一个参数就是我们输入的第一个数字，第二个参数是 `0`，第三个参数是 `14`，所以接下来只需要进一步分析 `func4` 即可。
+
+在汇编代码中搜索 `func4` 即可找到对应的代码片段
+
+```assembly
+0000000000400fce <func4>:
+  400fce:	48 83 ec 08          	sub    $0x8,%rsp
+  400fd2:	89 d0                	mov    %edx,%eax
+  400fd4:	29 f0                	sub    %esi,%eax
+  400fd6:	89 c1                	mov    %eax,%ecx
+  400fd8:	c1 e9 1f             	shr    $0x1f,%ecx
+  400fdb:	01 c8                	add    %ecx,%eax
+  400fdd:	d1 f8                	sar    %eax
+  400fdf:	8d 0c 30             	lea    (%rax,%rsi,1),%ecx
+  400fe2:	39 f9                	cmp    %edi,%ecx
+  400fe4:	7e 0c                	jle    400ff2 <func4+0x24>
+  400fe6:	8d 51 ff             	lea    -0x1(%rcx),%edx
+  400fe9:	e8 e0 ff ff ff       	callq  400fce <func4>
+  400fee:	01 c0                	add    %eax,%eax
+  400ff0:	eb 15                	jmp    401007 <func4+0x39>
+  400ff2:	b8 00 00 00 00       	mov    $0x0,%eax
+  400ff7:	39 f9                	cmp    %edi,%ecx
+  400ff9:	7d 0c                	jge    401007 <func4+0x39>
+  400ffb:	8d 71 01             	lea    0x1(%rcx),%esi
+  400ffe:	e8 cb ff ff ff       	callq  400fce <func4>
+  401003:	8d 44 00 01          	lea    0x1(%rax,%rax,1),%eax
+  401007:	48 83 c4 08          	add    $0x8,%rsp
+  40100b:	c3                   	retq   
+```
+
+整体代码并不长，但是里面有两处存在递归调用，如果使用 `gdb` 进行单步调试会比较绕，所以这里直接对汇编代码进行反向工程，获得对应的c代码如下
+
+```c
+int func4(int x, int a1, int a2) {
+  int m = (a2 - a1) / 2;
+  int n = m + a1;
+
+  if (n == x) return 0;
+  if (n < x) {
+    m = func4(x, n + 1, a2);
+    return 2 * m + 1;
+  } else {
+    m = func4(x, a1, n - 1);
+    return 2 * m;
+  }
+}
+```
+
+因为该函数需要返回的值是 0，所以只能走 `n==x` 和 `n>x` 这两个分支，否则会返回 `2*m+1`，那么结果必然不会是 `0`，而由前面知道 `a1=0, a2=14`，所以不断计算 `n` 的值即可求出所有符合条件的输入 x，如果嫌麻烦，也可以直接把运行这段代码来找符合条件的值。
+
+最终符合条件的值是 `0,1,3,7`，输入这四个值中的任意一个作为第一个数字输入，均可成功拆除炸弹。
