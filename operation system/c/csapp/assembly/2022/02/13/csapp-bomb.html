@@ -10,13 +10,13 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="记录在阅读和学习 CSAPP 过程中，完成 BombLab 的相关内容" />
 <meta property="og:description" content="记录在阅读和学习 CSAPP 过程中，完成 BombLab 的相关内容" />
-<link rel="canonical" href="https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/03/csapp-bomb.html" />
-<meta property="og:url" content="https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/03/csapp-bomb.html" />
+<link rel="canonical" href="https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/13/csapp-bomb.html" />
+<meta property="og:url" content="https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/13/csapp-bomb.html" />
 <meta property="og:site_name" content="Distill" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2022-02-03T00:00:00-06:00" />
+<meta property="article:published_time" content="2022-02-13T00:00:00-06:00" />
 <script type="application/ld+json">
-{"url":"https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/03/csapp-bomb.html","@type":"BlogPosting","headline":"CSAPP 之 Bomb Lab","dateModified":"2022-02-03T00:00:00-06:00","datePublished":"2022-02-03T00:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/03/csapp-bomb.html"},"description":"记录在阅读和学习 CSAPP 过程中，完成 BombLab 的相关内容","@context":"https://schema.org"}</script>
+{"url":"https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/13/csapp-bomb.html","@type":"BlogPosting","headline":"CSAPP 之 Bomb Lab","dateModified":"2022-02-13T00:00:00-06:00","datePublished":"2022-02-13T00:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://l1aoxingyu.github.io/blogpages/operation%20system/c/csapp/assembly/2022/02/13/csapp-bomb.html"},"description":"记录在阅读和学习 CSAPP 过程中，完成 BombLab 的相关内容","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/blogpages/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://l1aoxingyu.github.io/blogpages/feed.xml" title="Distill" /><link rel="shortcut icon" type="image/x-icon" href="/blogpages/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
@@ -87,13 +87,13 @@ window.onload = wrap_img;
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">CSAPP 之 Bomb Lab</h1><p class="page-description">记录在阅读和学习 CSAPP 过程中，完成 BombLab 的相关内容</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2022-02-03T00:00:00-06:00" itemprop="datePublished">
-        Feb 3, 2022
+    <h1 class="post-title p-name" itemprop="name headline">CSAPP 之 Bomb Lab</h1><p class="page-description">记录在阅读和学习 CSAPP 过程中，完成 BombLab 的相关内容</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2022-02-13T00:00:00-06:00" itemprop="datePublished">
+        Feb 13, 2022
       </time>
        • <span class="read-time" title="Estimated read time">
     
     
-      7 min read
+      12 min read
     
 </span></p>
 
@@ -125,6 +125,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h3"><a href="#0x12-phase_3">0x1.2 phase_3</a></li>
 <li class="toc-entry toc-h3"><a href="#0x13-phase_4">0x1.3 phase_4</a></li>
 <li class="toc-entry toc-h3"><a href="#0x14-phase_5">0x1.4 phase_5</a></li>
+<li class="toc-entry toc-h3"><a href="#0x15-phase_6">0x1.5 phase_6</a></li>
 </ul><h3 id="0x0-introduction">
 <a class="anchor" href="#0x0-introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0 Introduction</h3>
 
@@ -454,6 +455,171 @@ window.onload = wrap_img;
 
 <p>分析 <code class="language-plaintext highlighter-rouge">flyers</code> 分别在序列中最先出现的位置是 <code class="language-plaintext highlighter-rouge">9, 15, 14, 5, 6, 7</code>，如果我们都输入小写字母，那么起始点就是 <code class="language-plaintext highlighter-rouge">96</code>，因为在 <code class="language-plaintext highlighter-rouge">anscii</code> 编码中 <code class="language-plaintext highlighter-rouge">a=97</code>，比他小且最靠近它的 <code class="language-plaintext highlighter-rouge">16</code> 的倍数就是 <code class="language-plaintext highlighter-rouge">96</code>，所以上面的值分别加上 <code class="language-plaintext highlighter-rouge">96</code> 可以得到下面的结果 <code class="language-plaintext highlighter-rouge">105, 111, 110, 101, 102, 103</code>，再将其转换成字符可以获得最后输入的 <code class="language-plaintext highlighter-rouge">6</code> 个字符分别是 <code class="language-plaintext highlighter-rouge">ionefg</code>。</p>
 
+<h3 id="0x15-phase_6">
+<a class="anchor" href="#0x15-phase_6" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.5 phase_6</h3>
+
+<p>第6阶段会比较复杂，主要考察了 <code class="language-plaintext highlighter-rouge">linked list</code> 这种数据结构，我们还是像之前一样，逐步分析。</p>
+
+<p>首先进入的代码如下</p>
+
+<pre><code class="language-assembly">  401100:	49 89 e5             	mov    %rsp,%r13
+  401103:	48 89 e6             	mov    %rsp,%rsi
+  401106:	e8 51 03 00 00       	callq  40145c &lt;read_six_numbers&gt;
+  40110b:	49 89 e6             	mov    %rsp,%r14
+  40110e:	41 bc 00 00 00 00    	mov    $0x0,%r12d
+  401114:	4c 89 ed             	mov    %r13,%rbp
+  401117:	41 8b 45 00          	mov    0x0(%r13),%eax
+  40111b:	83 e8 01             	sub    $0x1,%eax
+  40111e:	83 f8 05             	cmp    $0x5,%eax
+  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt;
+  401123:	e8 12 03 00 00       	callq  40143a &lt;explode_bomb&gt;
+  401128:	41 83 c4 01          	add    $0x1,%r12d
+</code></pre>
+
+<p>先通过 <code class="language-plaintext highlighter-rouge">read_six_numbers</code> 读取 <code class="language-plaintext highlighter-rouge">6</code> 个数字，而 <code class="language-plaintext highlighter-rouge">$rsp, $r13, $rsi</code> 这三个寄存器里面都存放了相同的地址，可以通过在 <code class="language-plaintext highlighter-rouge">gdb</code> 中使用 <code class="language-plaintext highlighter-rouge">x /6 $rsi</code> 验证这里存放的是输入的 <code class="language-plaintext highlighter-rouge">6</code> 个数字的起始地址。</p>
+
+<p><code class="language-plaintext highlighter-rouge">mov 0x0(%r13),%eax</code> 会将输入的第一个数字放到寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 中，后面会对他做 <code class="language-plaintext highlighter-rouge">-1</code> 的运算，然后和 <code class="language-plaintext highlighter-rouge">0x5</code> 比较大小，必须要比他小或相等，否则炸弹会引爆，即输入的第一个数字必须要 <code class="language-plaintext highlighter-rouge">&lt;=6</code>。</p>
+
+<p>然后代码会进入到下面的地方</p>
+
+<pre><code class="language-assembly">  401128:	41 83 c4 01          	add    $0x1,%r12d
+  40112c:	41 83 fc 06          	cmp    $0x6,%r12d
+  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt;
+  401132:	44 89 e3             	mov    %r12d,%ebx
+  401135:	48 63 c3             	movslq %ebx,%rax
+  401138:	8b 04 84             	mov    (%rsp,%rax,4),%eax
+  40113b:	39 45 00             	cmp    %eax,0x0(%rbp)
+  40113e:	75 05                	jne    401145 &lt;phase_6+0x51&gt;
+  401140:	e8 f5 02 00 00       	callq  40143a &lt;explode_bomb&gt;
+  401145:	83 c3 01             	add    $0x1,%ebx
+  401148:	83 fb 05             	cmp    $0x5,%ebx
+  40114b:	7e e8                	jle    401135 &lt;phase_6+0x41&gt;
+</code></pre>
+
+<p>注意到前面的代码中将 <code class="language-plaintext highlighter-rouge">$r12d</code> 置为 <code class="language-plaintext highlighter-rouge">0</code>，然后这里会 <code class="language-plaintext highlighter-rouge">+1</code> 和 <code class="language-plaintext highlighter-rouge">6</code> 进行比较，如果相等则会直接跳到地址 <code class="language-plaintext highlighter-rouge">0x401153</code>，说明这是在遍历输入的 <code class="language-plaintext highlighter-rouge">6</code> 个数。</p>
+
+<p><code class="language-plaintext highlighter-rouge">mov (%rsp,%rax,4),%eax</code> 不断遍历输入的数字，此时 <code class="language-plaintext highlighter-rouge">$rax=1</code>，所以是把第二个数字放到寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 中，然后和 <code class="language-plaintext highlighter-rouge">0x0(%rbp)</code> 进行比较，前面我们知道 <code class="language-plaintext highlighter-rouge">$rbp</code> 存放了第一个数字的地址，也可以在 <code class="language-plaintext highlighter-rouge">gdb</code> 中进行确认，所以这是将后面输入的数字都和第一个数字比较，需要他们不等，否则就会引爆炸弹。</p>
+
+<p>跳出这个循环之后，会进入到下面这段代码</p>
+
+<pre><code class="language-assembly">  401114:	4c 89 ed             	mov    %r13,%rbp
+  401117:	41 8b 45 00          	mov    0x0(%r13),%eax
+  40111b:	83 e8 01             	sub    $0x1,%eax
+  40111e:	83 f8 05             	cmp    $0x5,%eax
+  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt;
+  401123:	e8 12 03 00 00       	callq  40143a &lt;explode_bomb&gt;
+  401128:	41 83 c4 01          	add    $0x1,%r12d
+  40112c:	41 83 fc 06          	cmp    $0x6,%r12d
+  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt;
+  ...
+  40114d:	49 83 c5 04          	add    $0x4,%r13
+  401151:	eb c1                	jmp    401114 &lt;phase_6+0x20&gt;
+</code></pre>
+
+<p>首先会对 <code class="language-plaintext highlighter-rouge">$r13</code> 增加 <code class="language-plaintext highlighter-rouge">4</code>个字节，因为输入的是 <code class="language-plaintext highlighter-rouge">int</code>，所以这里等价于让 <code class="language-plaintext highlighter-rouge">$r13</code> 指向第二个输入的数字，然后跳转到地址 <code class="language-plaintext highlighter-rouge">0x401114</code>。</p>
+
+<p>接着用 <code class="language-plaintext highlighter-rouge">$eax</code> 保留第二个数字，又跳到了第一段代码的地方，说明这里要求输入的所有数字都要 <code class="language-plaintext highlighter-rouge">&lt;=6</code>。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">$r12d</code> 和 <code class="language-plaintext highlighter-rouge">6</code> 比较的大小来决定是否遍历完所有的数字，接着进入到上一个循环，判断后面的数字是否和当前数字相等，这里的当前数字是第二个输入的数字，所以上面的代码总结起来的需求是要输入 <code class="language-plaintext highlighter-rouge">6</code> 个数字，每个数字需要 <code class="language-plaintext highlighter-rouge">&lt;=6</code>，并且他们互相不相等。</p>
+
+<p>然后代码会进行到下面这里</p>
+
+<pre><code class="language-assembly">  401153:	48 8d 74 24 18       	lea    0x18(%rsp),%rsi
+  401158:	4c 89 f0             	mov    %r14,%rax
+  40115b:	b9 07 00 00 00       	mov    $0x7,%ecx
+  401160:	89 ca                	mov    %ecx,%edx
+  401162:	2b 10                	sub    (%rax),%edx
+  401164:	89 10                	mov    %edx,(%rax)
+  401166:	48 83 c0 04          	add    $0x4,%rax
+  40116a:	48 39 f0             	cmp    %rsi,%rax
+  40116d:	75 f1                	jne    401160 &lt;phase_6+0x6c&gt;
+</code></pre>
+
+<p>注意到 <code class="language-plaintext highlighter-rouge">0x18</code> 在十进制下是 <code class="language-plaintext highlighter-rouge">24</code>，<code class="language-plaintext highlighter-rouge">$rsi</code> 地址在 <code class="language-plaintext highlighter-rouge">$rsp</code> 之后的 <code class="language-plaintext highlighter-rouge">24</code>个字节，刚好差了 <code class="language-plaintext highlighter-rouge">6</code> 个类型是 <code class="language-plaintext highlighter-rouge">int</code> 的输入。</p>
+
+<p>这里会遍历输入的每一个数字，首先通过 <code class="language-plaintext highlighter-rouge">7-num</code> 获得结果，保存在 <code class="language-plaintext highlighter-rouge">$edx</code> 中，然后 <code class="language-plaintext highlighter-rouge">mov %edx,(%rax)</code> 将结果放回 <code class="language-plaintext highlighter-rouge">$rax</code> 指向的内存地址，接着 <code class="language-plaintext highlighter-rouge">add $0x4,%rax</code> 遍历下一个数字，所以整体流程类似于下面的代码</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="p">{};</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">7</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>继续运行，会进入到下面的代码</p>
+
+<pre><code class="language-assembly">  401197:	8b 0c 34             	mov    (%rsp,%rsi,1),%ecx
+  40119a:	83 f9 01             	cmp    $0x1,%ecx
+  40119d:	7e e4                	jle    401183 &lt;phase_6+0x8f&gt;
+  40119f:	b8 01 00 00 00       	mov    $0x1,%eax
+  4011a4:	ba d0 32 60 00       	mov    $0x6032d0,%edx
+  4011a9:	eb cb                	jmp    401176 &lt;phase_6+0x82&gt;
+</code></pre>
+
+<p><code class="language-plaintext highlighter-rouge">$rsi</code> 初始为 <code class="language-plaintext highlighter-rouge">0</code>，<code class="language-plaintext highlighter-rouge">mov (%rsp,%rsi,1),%ecx</code> 将第一个数字放到 <code class="language-plaintext highlighter-rouge">$ecx</code> 中，然后和 <code class="language-plaintext highlighter-rouge">1</code> 进行比较，如果 <code class="language-plaintext highlighter-rouge">&lt;=1</code>，进入地址 <code class="language-plaintext highlighter-rouge">0x401183</code> 这个位置，否则往后执行，会进入 <code class="language-plaintext highlighter-rouge">0x401176</code> 这个地址。</p>
+
+<p>注意到<code class="language-plaintext highlighter-rouge">mov $0x6032d0,%edx</code> 将地址放到寄存器 <code class="language-plaintext highlighter-rouge">$edx</code> 中，可以通过 <code class="language-plaintext highlighter-rouge">x $edx</code> 查看其中的内容如下 <code class="language-plaintext highlighter-rouge">0x6032d0 &lt;node1&gt;: 0x0000014c</code>，不过目前我们还不知道这个数据结构的含义。</p>
+
+<p>继续运行到地址是 <code class="language-plaintext highlighter-rouge">0x401176</code> 的代码如下</p>
+
+<pre><code class="language-assembly">  401176:	48 8b 52 08          	mov    0x8(%rdx),%rdx
+  40117a:	83 c0 01             	add    $0x1,%eax
+  40117d:	39 c8                	cmp    %ecx,%eax
+  40117f:	75 f5                	jne    401176 &lt;phase_6+0x82&gt;
+  401181:	eb 05                	jmp    401188 &lt;phase_6+0x94&gt;
+  401183:	ba d0 32 60 00       	mov    $0x6032d0,%edx
+  401188:	48 89 54 74 20       	mov    %rdx,0x20(%rsp,%rsi,2)
+</code></pre>
+
+<p><code class="language-plaintext highlighter-rouge">$rdx</code> 表示 <code class="language-plaintext highlighter-rouge">node1</code>，开始先对地址 <code class="language-plaintext highlighter-rouge">+8</code>，然后 <code class="language-plaintext highlighter-rouge">$eax+1</code> 和 <code class="language-plaintext highlighter-rouge">$ecx</code> 比较大小，如果小于 <code class="language-plaintext highlighter-rouge">$ecx</code> 则继续对 <code class="language-plaintext highlighter-rouge">node1</code> 地址 <code class="language-plaintext highlighter-rouge">+8</code>，而<code class="language-plaintext highlighter-rouge">$ecx==6</code> 表示输入的 <code class="language-plaintext highlighter-rouge">6</code> 个数字，先从第一个数字开始取。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">x/24 $rdx</code> 可以看到下面的结果</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mh">0x6032d0</span> <span class="o">&lt;</span><span class="nx">node1</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x0000014c</span>      <span class="mh">0x00000001</span>      <span class="mh">0x006032e0</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x6032e0</span> <span class="o">&lt;</span><span class="nx">node2</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x000000a8</span>      <span class="mh">0x00000002</span>      <span class="mh">0x006032f0</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x6032f0</span> <span class="o">&lt;</span><span class="nx">node3</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x0000039c</span>      <span class="mh">0x00000003</span>      <span class="mh">0x00603300</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603300</span> <span class="o">&lt;</span><span class="nx">node4</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x000002b3</span>      <span class="mh">0x00000004</span>      <span class="mh">0x00603310</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603310</span> <span class="o">&lt;</span><span class="nx">node5</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x000001dd</span>      <span class="mh">0x00000005</span>      <span class="mh">0x00603320</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603320</span> <span class="o">&lt;</span><span class="nx">node6</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x000001bb</span>      <span class="mh">0x00000006</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00000000</span>
+</code></pre></div></div>
+
+<p>注意到 <code class="language-plaintext highlighter-rouge">node1</code> 的第三个数字即为 <code class="language-plaintext highlighter-rouge">node2</code> 的开始地址，说明这是一个 <code class="language-plaintext highlighter-rouge">linked list</code>，而第一个数字标注节点的 <code class="language-plaintext highlighter-rouge">val</code>，比如  <code class="language-plaintext highlighter-rouge">node1</code> 里面的 <code class="language-plaintext highlighter-rouge">val</code> 是 <code class="language-plaintext highlighter-rouge">332</code>。</p>
+
+<p>总结起来就是 <code class="language-plaintext highlighter-rouge">linked list</code> 初始地址为 <code class="language-plaintext highlighter-rouge">0x6032d0</code>，用户输入的 <code class="language-plaintext highlighter-rouge">6</code> 个数字，首先用 <code class="language-plaintext highlighter-rouge">7-</code>，然后遍历每个数字，数字决定了 <code class="language-plaintext highlighter-rouge">linked list</code> 向后移动的次数，最后将每次取到的 <code class="language-plaintext highlighter-rouge">node</code> 依次放到以 <code class="language-plaintext highlighter-rouge">0x20(%rsp)</code> 为起始地址的内存中。</p>
+
+<p>接着会进行下面这段代码</p>
+
+<pre><code class="language-assembly">  4011ab:	48 8b 5c 24 20       	mov    0x20(%rsp),%rbx
+  4011b0:	48 8d 44 24 28       	lea    0x28(%rsp),%rax
+  4011b5:	48 8d 74 24 50       	lea    0x50(%rsp),%rsi
+  4011ba:	48 89 d9             	mov    %rbx,%rcx
+  4011bd:	48 8b 10             	mov    (%rax),%rdx
+  4011c0:	48 89 51 08          	mov    %rdx,0x8(%rcx)
+  4011c4:	48 83 c0 08          	add    $0x8,%rax
+  4011c8:	48 39 f0             	cmp    %rsi,%rax
+  4011cb:	74 05                	je     4011d2 &lt;phase_6+0xde&gt;
+  4011cd:	48 89 d1             	mov    %rdx,%rcx
+  4011d0:	eb eb                	jmp    4011bd &lt;phase_6+0xc9&gt;
+</code></pre>
+
+<p>这段代码是修改每个 <code class="language-plaintext highlighter-rouge">node</code> 指向的内容，重新建立新的 <code class="language-plaintext highlighter-rouge">linked list</code>，让取到的前一个 <code class="language-plaintext highlighter-rouge">node</code> 指向取到的下一个 <code class="language-plaintext highlighter-rouge">node</code> 的地址，可以通过 <code class="language-plaintext highlighter-rouge">mov  %rdx,0x8(%rcx)</code> 看出来，同时 <code class="language-plaintext highlighter-rouge">add $0x8,%rax</code> 即为不断的向后遍历 <code class="language-plaintext highlighter-rouge">linked list</code>。</p>
+
+<p>最后会运行到下面这段代码</p>
+
+<pre><code class="language-assembly">  4011d2:	48 c7 42 08 00 00 00 	movq   $0x0,0x8(%rdx)
+  4011d9:	00 
+  4011da:	bd 05 00 00 00       	mov    $0x5,%ebp
+  4011df:	48 8b 43 08          	mov    0x8(%rbx),%rax
+  4011e3:	8b 00                	mov    (%rax),%eax
+  4011e5:	39 03                	cmp    %eax,(%rbx)
+  4011e7:	7d 05                	jge    4011ee &lt;phase_6+0xfa&gt;
+  4011e9:	e8 4c 02 00 00       	callq  40143a &lt;explode_bomb&gt;
+</code></pre>
+
+<p>这段代码最后决定了是否会引爆炸弹，<code class="language-plaintext highlighter-rouge">$rbx</code> 是第一次取到的 <code class="language-plaintext highlighter-rouge">node</code>，<code class="language-plaintext highlighter-rouge">0x8(%rbx)</code> 是第二次取到的 <code class="language-plaintext highlighter-rouge">node</code>，这里的比较需要前一次取到的 <code class="language-plaintext highlighter-rouge">nodel</code> 里面的值比第二次取到的 <code class="language-plaintext highlighter-rouge">node</code> 中的值大，否则炸弹爆炸。</p>
+
+<p>看到这里，要求已经很清楚了，我们需要输入 <code class="language-plaintext highlighter-rouge">6</code> 个数字，每个数字 <code class="language-plaintext highlighter-rouge">7-</code> 之后表示取 <code class="language-plaintext highlighter-rouge">linked list</code> 中的第几个 <code class="language-plaintext highlighter-rouge">node</code>，依次取出来值之后，需要降序排列，所以通过比较上面 <code class="language-plaintext highlighter-rouge">linked list</code> 不同 <code class="language-plaintext highlighter-rouge">node</code> 的值，最终需要输入的结果为 <code class="language-plaintext highlighter-rouge">4 3 2 1 6 5</code>。</p>
+
+
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
         repo="L1aoXingyu/blogpages"
@@ -462,7 +628,7 @@ window.onload = wrap_img;
         theme="github-light"
         crossorigin="anonymous"
         async>
-</script><a class="u-url" href="/blogpages/operation%20system/c/csapp/assembly/2022/02/03/csapp-bomb.html" hidden></a>
+</script><a class="u-url" href="/blogpages/operation%20system/c/csapp/assembly/2022/02/13/csapp-bomb.html" hidden></a>
 </article>
 
       </div>
