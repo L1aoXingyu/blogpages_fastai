@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>VSCode 配置最舒适的深度学习开发环境 | Distill</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="VSCode 配置最舒适的深度学习开发环境" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="记录如何使用 VSCode 配置一个适合于深度学习场景的开发环境" />
+<meta property="og:description" content="记录如何使用 VSCode 配置一个适合于深度学习场景的开发环境" />
+<link rel="canonical" href="https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html" />
+<meta property="og:url" content="https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html" />
+<meta property="og:site_name" content="Distill" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-02-19T00:00:00-06:00" />
+<script type="application/ld+json">
+{"url":"https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html","@type":"BlogPosting","headline":"VSCode 配置最舒适的深度学习开发环境","dateModified":"2022-02-19T00:00:00-06:00","datePublished":"2022-02-19T00:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html"},"description":"记录如何使用 VSCode 配置一个适合于深度学习场景的开发环境","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blogpages/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://l1aoxingyu.github.io/blogpages/feed.xml" title="Distill" /><link rel="shortcut icon" type="image/x-icon" href="/blogpages/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blogpages/">Distill</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blogpages/about/">About Me</a><a class="page-link" href="/blogpages/search/">Search</a><a class="page-link" href="/blogpages/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">VSCode 配置最舒适的深度学习开发环境</h1><p class="page-description">记录如何使用 VSCode 配置一个适合于深度学习场景的开发环境</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2022-02-19T00:00:00-06:00" itemprop="datePublished">
+        Feb 19, 2022
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      2 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blogpages/categories/#vscode">vscode</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blogpages/categories/#tool">tool</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blogpages/categories/#development">development</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blogpages/categories/#deep learning">deep learning</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h3"><a href="#0x0-引言">0x0 引言</a></li>
+<li class="toc-entry toc-h3"><a href="#0x1-选择-vscode-的原因">0x1 选择 VSCode 的原因</a></li>
+<li class="toc-entry toc-h3"><a href="#0x2-深度学习必备插件">0x2 深度学习必备插件</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#0x21-python-插件">0x2.1 Python 插件</a></li>
+<li class="toc-entry toc-h4"><a href="#0x22-cc-相关插件">0x2.2 C/C++ 相关插件</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h3"><a href="#0x3-debug-python-代码">0x3 Debug Python 代码</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#0x31-自动定位到错误代码行">0x3.1 自动定位到错误代码行</a></li>
+<li class="toc-entry toc-h4"><a href="#0x32-单步调试代码">0x3.2 单步调试代码</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h3"><a href="#0x4-debug-cc-代码">0x4 Debug C/C++ 代码</a></li>
+<li class="toc-entry toc-h3"><a href="#0x5-debug-pythonc-混合代码">0x5 Debug Python/C++ 混合代码</a></li>
+</ul><h3 id="0x0-引言">
+<a class="anchor" href="#0x0-%E5%BC%95%E8%A8%80" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0 引言</h3>
+
+<p>深度学习往往需要强大的算力和硬件作为支撑，这使得深度学习下的模型和算法大多需要在服务器和集群上运行，区别于传统的程序开发可以在本地的机器上运行，这给深度学习的开发带来了新的挑战。</p>
+
+<p>在以前，远程开发需要 SSH 登录到服务器上使用命令行和终端进行开发，相比于 Vim 的使用好手可以在终端眼花缭乱地操作代码，大部分人更习惯于 UI 界面和图形化的开发工具，而适应和学习远程开发无疑降低了代码开发效率。而除了代码开发之外，debug 模型和算法也占据着算法开发的一大部分时间，成熟的软件提供了好的 debugger 工具，而远程开发只有命令行和一些 unix 软件，又需要额外学习命令行 debug 的工具链，比如 <code class="language-plaintext highlighter-rouge">ipdb</code> 和 <code class="language-plaintext highlighter-rouge">gdb</code>。</p>
+
+<p>然而现在已经是 2022 年了，远程开发早已变得司空见惯，也有很多软件支持了远程开发的方式，这使得我们不再需要面对黑漆漆的终端和命令行进行开发，也不需要先学习很多复杂的 debugger 工具才能进行模型和算法的开发，极大地增加了我们的开发效率，这篇文章就是总结了笔者经过一段时间探索之后所搭建的最舒适的深度学习开发环境以及一些 debug 的教程。</p>
+
+<h3 id="0x1-选择-vscode-的原因">
+<a class="anchor" href="#0x1-%E9%80%89%E6%8B%A9-vscode-%E7%9A%84%E5%8E%9F%E5%9B%A0" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1 选择 VSCode 的原因</h3>
+
+<p>对于远程开发来说，有两种方式，一种是本地写代码，然后和远程服务器同步代码；还有一种是直接在服务器上进行开发和写代码。</p>
+
+<p>如果在本地开发代码，不管是用编辑器还是 IDE，最后都需要将代码传到到远程服务器上，而本地环境和远程服务器多少有一些不同，有的时候本地能跑通的代码同步上去可能会有 bug，需要经过二次调试才能在服务器上跑通，而且有一些代码补全功能因为服务器端和本地的环境不同也没法实现，这样的开发效率并不高。</p>
+
+<p>效率更高的开发方式还是直接在远程服务器上进行开发，而炼丹一般来说都是以 Python 语言为主，所以目前有三种方式可以实现远程开发：</p>
+
+<ol>
+  <li>
+    <p>SSH 到远程服务器上，然后用 Vim 写代码。</p>
+
+    <p>这就是上古时期大神们的开发方式，不过 Vim 的学习成本相对较高，同时 Vim 还需要安装一些插件，进行一定的配置才能比较丝滑地进行开发，否则 Vim 就是一个白板编辑器，而这些步骤相对繁琐，不太适合大部分的炼丹师，容易磨灭大家炼丹的热情；</p>
+  </li>
+  <li>
+    <p>PyCharm <strong>专业版</strong></p>
+
+    <p>PyCharm 的专业版提供一个远程同步服务器的功能，同时还可以配置远程的解释器，相当于代码还是在本地写，不过 PyCharm 会帮你自动同步到远程，同时还可以利用远程的解释器进行代码的提示和自动补全，相当于在本地可以享受到远程服务器的开发环境；</p>
+
+    <p>虽然 PyCharm 的使用体验看上去非常方便以及丝滑，这也作为笔者之前一段时间的开发工具，不过使用一段时间之后发现了下面4个问题：</p>
+
+    <ul>
+      <li>专业版需要付费，不像社区版可以免费使用，虽然学生党可以用自己的学校邮箱申请免费使用，不过工作党就只能自己掏钱了，用破解版还是有较大的风险；</li>
+      <li>PyCharm 开发并不是真正在远程进行的，而是通过 SFTP 将本地代码传上去，有的时候可能会出现本地代码没有同步上去的问题，而且有的公司内网需要跳板机才能访问，也就是需要两次 SSH，虽然有解决办法绕过去，但是还是比较麻烦；</li>
+      <li>PyCharm 比较占内存，而一般我们本地开发都是用自己的笔记本，配置一般不会很高，这时候就容易出现卡顿和发热的现象；</li>
+      <li>最后一个问题是 PyCharm 作为一个 Python 的 IDE，非常适合进行 Python 开发，而对于多语言的开发环境就比较难用了，比如深度学习有时还需要写 C++/CUDA；</li>
+    </ul>
+  </li>
+  <li>
+    <p>VSCode Remote-SSH</p>
+
+    <p>VSCode 也提供了一种远程开发模式可以直接在服务器上写代码，不占用本地机器的内存，同时利用服务器端的开发环境，也不存在开发环境切换的问题，另外有很多社区和官方的插件，配置也比 Vim 简单很多，也能实现代码的自动跳转等功能，对于多语言开发来讲也比较友好，总体来说结合了 Vim 和 PyCharm 各自的优点。</p>
+
+    <p>虽然看上去 VSCode 具备非常大的优点，但是 VSCode 并没有在社区一统天下，它也有一些缺点：</p>
+
+    <ul>
+      <li>Python 的代码编写体验弱于 PyCharm ，代码补全和跳转没有办法做到 PyCharm 那么给力，毕竟 PyCharm 的定位是 Python IDE，而 VSCode 的定位只是一个编辑器；</li>
+      <li>Debug 调试上 PyCharm 不管是 UI 还是 feature 都要比 VSCode 强一些，VSCode 的 debug 还是有一定的学习成本；</li>
+      <li>PyCharm 额外集成了 Django Tools 等工具是 VSCode 没有的；</li>
+      <li>对于非常大型的项目， VSCode 可能连整个项目的 index 都没法完成，代码跳转等功能会出现间歇性抽风；</li>
+    </ul>
+  </li>
+</ol>
+
+<p>上面讲了三种开发方式，一般来说主流的方案都是在 PyCharm 和 VSCode 中选择，上面也列举了不同开发方式各自的优缺点，而笔者最终选择使用 VSCode 作为开发环境也是权衡了上面的利弊。</p>
+
+<p>不过争论到底哪种方式更好其实没有意义，因为最终也不会有结论，大家按照自己的需求进行选择即可。这篇文章也不是为了说服使用 PyCharm 的同学转入 VSCode 的怀抱，更多会讲讲自己是如何配置 VSCode 以及怎么使用 VSCode 能够最大限度发挥其优势，希望能够帮助到正在使用 VSCode 的同学。</p>
+
+<h3 id="0x2-深度学习必备插件">
+<a class="anchor" href="#0x2-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E5%BF%85%E5%A4%87%E6%8F%92%E4%BB%B6" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2 深度学习必备插件</h3>
+
+<p>使用 VSCode 进行深度学习相关的开发，主要用到的语言就是 Python 和 C++/CUDA，所以下面列举一下使用这两种语言需要用的插件是哪些，另外一些 UI、主题以及一些工具类的插件这里就不在赘述了，毕竟这些内容都是高度个性化的东西，和本文的主题关系并不大，大家可以按照自己的喜好进行这类插件的安装。</p>
+
+<h4 id="0x21-python-插件">
+<a class="anchor" href="#0x21-python-%E6%8F%92%E4%BB%B6" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2.1 Python 插件</h4>
+
+<p>对于 Python 开发，主要使用的插件是下面两个：</p>
+
+<ul>
+  <li>
+<a href="https://marketplace.visualstudio.com/items?itemName=ms-python.python">Python - Visual Studio Marketplace</a>: 微软官方 Python 扩展，支持 Python2、3，最重要的是支持 python debugging 功能，这里在后面会具体讲到；</li>
+  <li>
+<a href="https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance">Pylance - Visual Studio Marketplace</a>: 微软官方 Python 语言服务器，提供丰富的静态类型检查和自动补全，这会极大提高编程效率；</li>
+</ul>
+
+<p>这两个 Python 插件的配置比较简单，在左边的扩展进行搜索，找到之后直接进行下载即可，基本没有坑。</p>
+
+<h4 id="0x22-cc-相关插件">
+<a class="anchor" href="#0x22-cc-%E7%9B%B8%E5%85%B3%E6%8F%92%E4%BB%B6" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2.2 C/C++ 相关插件</h4>
+
+<ul>
+  <li>
+<a href="https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd">clangd - Visual Studio Marketplace</a>: LLVM 针对 C/C++ 提供的 Language Server Protocol，可以用它来自动补全代码，实现自动跳转的功能；</li>
+  <li>
+<a href="https://marketplace.visualstudio.com/items?itemName=webfreak.debug">Native Debug - Visual Studio Marketplace</a>: 主要是用 gdb 来 debug C/C++ 代码；</li>
+</ul>
+
+<p>在安装完 clangd 的插件之后，可以调出 VSCode 的命令面板，输入 clangd 可以看到自动下载 clangd 的扩展包，可能因为不可描述的服务器网络问题导致扩展包下载失败，可以访问 clangd 的官网进行手工安装。</p>
+
+<p><strong>注意</strong>：请确保微软官方的 C/C++ 插件已经卸载或者禁用，否则会出现冲突。因为微软的 C++ 插件存在内存泄露和僵尸进程等问题，所以推荐使用上面的插件进行平替。</p>
+
+<h3 id="0x3-debug-python-代码">
+<a class="anchor" href="#0x3-debug-python-%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x3 Debug Python 代码</h3>
+
+<p>前面安装的两个 Python 插件，其中 Pylance 提供了 language server protocol 可以自动补全代码，让 Python 的编写效率提高，另外一个插件除了提供语法高亮等内容之外，还提供了非常强大的 debug 功能，如果没有了解的同学可以先阅读一下官方教程 <a href="https://code.visualstudio.com/docs/python/debugging">Debugging configurations for Python apps in Visual Studio Code </a>，下面举两个例子来说明如何使用 VSCode 高效开发模型。</p>
+
+<h4 id="0x31-自动定位到错误代码行">
+<a class="anchor" href="#0x31-%E8%87%AA%E5%8A%A8%E5%AE%9A%E4%BD%8D%E5%88%B0%E9%94%99%E8%AF%AF%E4%BB%A3%E7%A0%81%E8%A1%8C" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x3.1 自动定位到错误代码行</h4>
+
+<p>有的时候我们会拿到一份可以跑通的代码，但是可能轻微修改完一些超参之后代码就跑不通了，这个时候我们就需要去查看报错信息，而报错信息往往包含很多调用栈，需要在一堆信息中寻找真正的报错位置。</p>
+
+<p>我们可以用下面的报错信息举例，一份训练代码在修改了一个超参之后就出现了下面的报错，通过查看最终的报错信息可以知道好像是某个 BN 层的输入和参数维度对不上，但是网络中有那么多 BN 层，也很难定位是哪个 BN。接着我们可以不断往前找，最终会发现是在 <code class="language-plaintext highlighter-rouge">embedding_head.py</code> 中的 <code class="language-plaintext highlighter-rouge">124</code> 行的 bottleneck 调用的时候出现的报错，而 bottleneck 具体在哪里需要继续在代码里面进行查看。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+  File <span class="s2">"tools/train_net.py"</span>, line 57, <span class="k">in</span> &lt;module&gt;
+    <span class="nv">args</span><span class="o">=(</span>args,<span class="o">)</span>,
+  File <span class="s2">"./fastreid/engine/launch.py"</span>, line 71, <span class="k">in </span>launch
+    main_func<span class="o">(</span><span class="k">*</span>args<span class="o">)</span>
+  File <span class="s2">"tools/train_net.py"</span>, line 45, <span class="k">in </span>main
+    <span class="k">return </span>trainer.train<span class="o">()</span>
+  File <span class="s2">"./fastreid/engine/defaults.py"</span>, line 348, <span class="k">in </span>train
+    super<span class="o">()</span>.train<span class="o">(</span>self.start_epoch, self.max_epoch, self.iters_per_epoch<span class="o">)</span>
+  File <span class="s2">"./fastreid/engine/train_loop.py"</span>, line 145, <span class="k">in </span>train
+    self.run_step<span class="o">()</span>
+  File <span class="s2">"./fastreid/engine/defaults.py"</span>, line 357, <span class="k">in </span>run_step
+    self._trainer.run_step<span class="o">()</span>
+  File <span class="s2">"./fastreid/engine/train_loop.py"</span>, line 241, <span class="k">in </span>run_step
+    loss_dict <span class="o">=</span> self.model<span class="o">(</span>data<span class="o">)</span>
+  File <span class="s2">"/home/dev/.local/lib/python3.6/site-packages/torch/nn/modules/module.py"</span>, line 1051, <span class="k">in </span>_call_impl
+    <span class="k">return </span>forward_call<span class="o">(</span><span class="k">*</span>input, <span class="k">**</span>kwargs<span class="o">)</span>
+  File <span class="s2">"./fastreid/modeling/meta_arch/baseline.py"</span>, line 112, <span class="k">in </span>forward
+    outputs <span class="o">=</span> self.heads<span class="o">(</span>features, targets<span class="o">)</span>
+  File <span class="s2">"/home/dev/.local/lib/python3.6/site-packages/torch/nn/modules/module.py"</span>, line 1051, <span class="k">in </span>_call_impl
+    <span class="k">return </span>forward_call<span class="o">(</span><span class="k">*</span>input, <span class="k">**</span>kwargs<span class="o">)</span>
+  File <span class="s2">"./fastreid/modeling/heads/embedding_head.py"</span>, line 124, <span class="k">in </span>forward
+    neck_feat <span class="o">=</span> self.bottleneck<span class="o">(</span>pool_feat<span class="o">)</span>
+  File <span class="s2">"/home/dev/.local/lib/python3.6/site-packages/torch/nn/modules/module.py"</span>, line 1051, <span class="k">in </span>_call_impl
+    <span class="k">return </span>forward_call<span class="o">(</span><span class="k">*</span>input, <span class="k">**</span>kwargs<span class="o">)</span>
+  File <span class="s2">"/home/dev/.local/lib/python3.6/site-packages/torch/nn/modules/container.py"</span>, line 139, <span class="k">in </span>forward
+    input <span class="o">=</span> module<span class="o">(</span>input<span class="o">)</span>
+  File <span class="s2">"/home/dev/.local/lib/python3.6/site-packages/torch/nn/modules/module.py"</span>, line 1051, <span class="k">in </span>_call_impl
+    <span class="k">return </span>forward_call<span class="o">(</span><span class="k">*</span>input, <span class="k">**</span>kwargs<span class="o">)</span>
+  File <span class="s2">"/home/dev/.local/lib/python3.6/site-packages/torch/nn/modules/batchnorm.py"</span>, line 178, <span class="k">in </span>forward
+    self.eps,
+  File <span class="s2">"/home/dev/.local/lib/python3.6/site-packages/torch/nn/functional.py"</span>, line 2282, <span class="k">in </span>batch_norm
+    input, weight, bias, running_mean, running_var, training, momentum, eps, torch.backends.cudnn.enabled
+RuntimeError: running_mean should contain 2048 elements not 1024
+</code></pre></div></div>
+
+<h4 id="0x32-单步调试代码">
+<a class="anchor" href="#0x32-%E5%8D%95%E6%AD%A5%E8%B0%83%E8%AF%95%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x3.2 单步调试代码</h4>
+
+<h3 id="0x4-debug-cc-代码">
+<a class="anchor" href="#0x4-debug-cc-%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x4 Debug C/C++ 代码</h3>
+
+<h3 id="0x5-debug-pythonc-混合代码">
+<a class="anchor" href="#0x5-debug-pythonc-%E6%B7%B7%E5%90%88%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x5 Debug Python/C++ 混合代码</h3>
+
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="L1aoXingyu/blogpages"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blogpages/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blogpages/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blogpages/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>I want to create some new things! Happy blogging &amp; coding... ❤ | Scenius</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/L1aoXingyu" target="_blank" title="L1aoXingyu"><svg class="svg-icon grey"><use xlink:href="/blogpages/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/xingyu_liao" target="_blank" title="xingyu_liao"><svg class="svg-icon grey"><use xlink:href="/blogpages/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
