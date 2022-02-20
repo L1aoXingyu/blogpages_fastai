@@ -9,9 +9,9 @@ title: "CSAPP 之 Bomb Lab"
 
 ### 0x0 Introduction
 
-该实验提供了一个 "binary bomb"，这是一个编译好的二进制程序，在运行过程中需要用户提供6次输入，如果有任何一次不正确，炸弹就会爆炸。
+该实验提供了一个 "binary bomb"，这是一个编译好的二进制程序，在运行过程中需要用户提供 6 次输入，如果有任何一次不正确，炸弹就会爆炸。
 
-在这个实验中，我们需要做逆向工程对炸弹进行拆解，对这个二进制程序进行反汇编后，通过阅读他的汇编代码，获取需要输入的6个字符串是什么。
+在这个实验中，我们需要做逆向工程对炸弹进行拆解，对这个二进制程序进行反汇编后，通过阅读他的汇编代码，获取需要输入的 6 个字符串是什么。
 
 在这次实验中，主要使用的工具如下：
 
@@ -27,9 +27,11 @@ objdump bomb -d > bomb.asm
 
 <img src="{{ site.baseurl }}/images/csapp-bomb/bomb_preview.png" width="700"/>
 
-### 0x1.0 phase_1
+### 0x1 实验阶段
 
-下面的c代码包含了第一阶段的所有内容
+#### 0x1.1 phase_1
+
+下面的 c 代码包含了第一阶段的所有内容
 
 ```c
 /* Hmm...  Six phases must be more secure than one phase! */
@@ -40,13 +42,11 @@ phase_defused();                 /* Drat!  They figured it out!
 /* Border relations with Canada have never been better. */
 ```
 
-
-
 代码非常简单，程序读取输入之后，送到 `phase_1` 这个函数中进行处理，如果函数顺利退出则表示炸弹被拆掉，输入指令正确。
 
 通过在汇编代码中搜索 `phase_1` 即可找到其在汇编代码中的片段
 
-```assembly
+```js
 0000000000400ee0 <phase_1>:
   400ee0:	48 83 ec 08          	sub    $0x8,%rsp
   400ee4:	be 00 24 40 00       	mov    $0x402400,%esi
@@ -58,13 +58,11 @@ phase_defused();                 /* Drat!  They figured it out!
   400efb:	c3                   	retq   
 ```
 
-
-
 简单阅读这一段汇编代码，主要是调用了 `strings_not_equal` 这个函数，而通过名字可以大概了解这就是一个判断字符串是否相等的函数。
 
 而上面有一段代码将地址 `0x402400` 移动到寄存器 `%esi` 中，通过查表可以了解到 `%esi` 是函数的第二个参数，而调用 `phase_1` 时，汇编代码如下，发现是通过 `read_line` 这个函数，将用户输入的结果移动到寄存器 `%rdi` 中，而这恰好是函数的第一个参数，所以可以得到第一阶段即要对比用户输入的字符串和 `0x402400` 这个地址存放的字符串是否相等。
 
-```assembly
+```js
   400e32:	e8 67 06 00 00       	callq  40149e <read_line>
   400e37:	48 89 c7             	mov    %rax,%rdi
   400e3a:	e8 a1 00 00 00       	callq  400ee0 <phase_1>
@@ -74,24 +72,24 @@ phase_defused();                 /* Drat!  They figured it out!
 
 在 gdb 中通过 `ni` 可以在汇编代码中进行单步运行，我们可以运行到 `strings_not_equal` 这个函数调用前，接着通过 `p (char*)0x402400` 即可获得这个地址对应的字符串如下
 
-```javascript
+```js
 (gdb) p (char*)(0x402400)
 $6 = 0x402400 "Border relations with Canada have never been better."
 ```
 
 接着可以尝试在 `phase_1` 输入这段字符串，可以获得下面的结果，说明 `pahse_1` 的输入指令正确，炸弹已经成功拆除了。
 
-```javascript
+```js
 Phase 1 defused. How about the next one?
 ```
 
-### 0x1.1 phase_2
+#### 0x1.2 phase_2
 
 接着需要输入第二段字符，首先可以通过 `b phase_2` 直接在第二阶段开始时打上断点，然后随意输入一段字符以进入这个函数。
 
-通过下面的汇编代码片段，发现调用了函数 `read_six_numbers`，其实通过函数名就可以发现这个函数需要输入6个数字，接着紧跟着的代码是执行 `cmpl $0x1, (%rsp)`，如果相等直接跳到 `0x400f30`，否则会调用 `explode_bomb`，这说明了要求输入的第一个数字必须是 1，否则炸弹会爆炸。
+通过下面的汇编代码片段，发现调用了函数 `read_six_numbers`，其实通过函数名就可以发现这个函数需要输入 6 个数字，接着紧跟着的代码是执行 `cmpl $0x1, (%rsp)`，如果相等直接跳到 `0x400f30`，否则会调用 `explode_bomb`，这说明了要求输入的第一个数字必须是 1，否则炸弹会爆炸。
 
-```assembly
+```js
 0000000000400efc <phase_2>:
   400efc:	55                   	push   %rbp
   400efd:	53                   	push   %rbx
@@ -104,9 +102,9 @@ Phase 1 defused. How about the next one?
   400f15:	eb 19                	jmp    400f30 <phase_2+0x34>
 ```
 
-为了进一步确定 `read_six_numbers` 是要求我们输入6个数字，我们搜索对应的函数名，可以获得下面的汇编代码段
+为了进一步确定 `read_six_numbers` 是要求我们输入 6 个数字，我们搜索对应的函数名，可以获得下面的汇编代码段
 
-```assembly
+```js
 000000000040145c <read_six_numbers>:
   40145c:	48 83 ec 18          	sub    $0x18,%rsp
   401460:	48 89 f2             	mov    %rsi,%rdx
@@ -131,7 +129,7 @@ Phase 1 defused. How about the next one?
 
 接着代码会跳到 `0x400f30`，继续往下找对应的代码，会发现这一段代码比较重要。
 
-```assembly
+```js
   400f17:	8b 43 fc             	mov    -0x4(%rbx),%eax    
   400f1a:	01 c0                	add    %eax,%eax
   400f1c:	39 03                	cmp    %eax,(%rbx)
@@ -146,23 +144,23 @@ Phase 1 defused. How about the next one?
   400f3a:	eb db                	jmp    400f17 <phase_2+0x1b>
 ```
 
-其中 `(%rsp)` 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是**4个字节**，那么`0x4(%rsx)` 表示第二个输入的数字，`0x18(%rsp)` 并不是表示第六个输入的数字，而是表示第六个数字之后的地址，后面会讲为什么需要这样设置。
+其中 `(%rsp)` 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是** 4 个字节**，那么`0x4(%rsx)` 表示第二个输入的数字，`0x18(%rsp)` 并不是表示第六个输入的数字，而是表示第六个数字之后的地址，后面会讲为什么需要这样设置。
 
-可以发现代码又跳转到 `0x400f17` 地址，首先 `mov  -0x4(%rbx),%eax` 即可将第一个输入的数字放到寄存器 `%eax` 中，然后 `add %eax,%eax` 其实就是将数字`*2`，然后判断 `%eax` 和 `(%rbx)` 是否相等，如果不相等则炸弹会爆炸，由此可以看出我们需要输入6个数字，第一个是1，然后每一个后面的数字都是前面数字的两倍。
+可以发现代码又跳转到 `0x400f17` 地址，首先 `mov  -0x4(%rbx),%eax` 即可将第一个输入的数字放到寄存器 `%eax` 中，然后 `add %eax,%eax` 其实就是将数字`*2`，然后判断 `%eax` 和 `(%rbx)` 是否相等，如果不相等则炸弹会爆炸，由此可以看出我们需要输入 6 个数字，第一个是 1，然后每一个后面的数字都是前面数字的两倍。
 
-最后可以通过 `add $0x4,%rbx` 不断遍历下一个元素，然后通过 `%rbp` 和 `%rbx` 是否相等的判断来决定跳出循环，注意 `(%rsp)` 表示第一个数字，那么`0x14(%rsp)`表示第六个数字，所以`0x18(%rsp)`表示第六个数字之后的地址，通过和这个地址作比较，可以确保遍历完所有的6个数字。
+最后可以通过 `add $0x4,%rbx` 不断遍历下一个元素，然后通过 `%rbp` 和 `%rbx` 是否相等的判断来决定跳出循环，注意 `(%rsp)` 表示第一个数字，那么`0x14(%rsp)`表示第六个数字，所以`0x18(%rsp)`表示第六个数字之后的地址，通过和这个地址作比较，可以确保遍历完所有的 6 个数字。
 
-最后这6个数字为 `1 2 4 8 16 32`，输入这些数字即可解除第二阶段的炸弹。
+最后这 6 个数字为 `1 2 4 8 16 32`，输入这些数字即可解除第二阶段的炸弹。
 
-### 0x1.2 phase_3
+#### 0x1.3 phase_3
 
 接着需要输入第三段字符，首先可以通过 `b phase_3` 直接在第三阶段开始的时候打上断点，然后输入一段字符以进入这个函数。
 
 通过阅读下面这段汇编代码，可以发现，`scanf` 的返回值需要大于`1`，否则炸弹就会爆炸，这也就是说至少需要输入`2`个数字。
 
-接着继续查看下面的代码，发现需要比较 `$0x7` 和 `0x8(%rsp)`，通过 `x (%rsp+0x8)` ，可以发现`0x8(%rsp)` 表示第一个数字的地址，进一步可以发现 `0xc(%rsp)`表示第二个数字的地址，地址差距是4个字节，说明是 int32 的数据类型。
+接着继续查看下面的代码，发现需要比较 `$0x7` 和 `0x8(%rsp)`，通过 `x (%rsp+0x8)` ，可以发现`0x8(%rsp)` 表示第一个数字的地址，进一步可以发现 `0xc(%rsp)`表示第二个数字的地址，地址差距是 4 个字节，说明是 int32 的数据类型。
 
-```assembly
+```js
   400f6a:	83 7c 24 08 07       	cmpl   $0x7,0x8(%rsp)
   400f6f:	77 3c                	ja     400fad <phase_3+0x6a>
   ...
@@ -173,14 +171,14 @@ Phase 1 defused. How about the next one?
 
 接着继续执行下面的代码，首先将第一个数字放到寄存器 `$eax` 中，然后执行 `jmpq` 指令，跳转的地址是 `0x402470 + 8 * $rax` 位置的指针指向的内容，这里我们可以通过在 `gdb` 中输入 `ni` 进行单步执行，来判断最终代码跳转的位置，如果输入的第一个数字是`1`，那么也可以通过`p/x *(0x402470+8)`或者是 `x/x 0x402470+8` 来计算出具体的位置。
 
-```assembly
+```js
   400f71:	8b 44 24 08          	mov    0x8(%rsp),%eax
   400f75:	ff 24 c5 70 24 40 00 	jmpq   *0x402470(,%rax,8)
 ```
 
 接着直接跳到对应的位置去查看代码，可以发现下面的代码需要比较输入的第二个数字和 `0x137` 的大小，因为首先通过 `mov $0x137,%eax` 将 `0x137` 移动到寄存器 `$eax` 中，然后通过 `cmp 0xc(%rsp),%eax` 来比较寄存器 `$eax` 的值以及地址 `0xc(%rsp)`  指向内存的值，从前面可以知道这是第二个输入的数字。
 
-```assembly
+```js
   400fb9:	b8 37 01 00 00       	mov    $0x137,%eax
   400fbe:	3b 44 24 0c          	cmp    0xc(%rsp),%eax
   400fc2:	74 05                	je     400fc9 <phase_3+0x86>
@@ -189,11 +187,11 @@ Phase 1 defused. How about the next one?
 
 所以输入的第二个数字换成十进制则是 `311` ，于是输入 `1 311` 即可接触第三个炸弹，因为要求第一个数字 `<=7`，所以这里只描述了一种可能性，也可以尝试第一个数字输入是`2`，会发现程序会跳到 `0x400f83`，需要输入的第二个数字是 `707`.
 
-### 0x1.3 phase_4
+#### 0x1.4 phase_4
 
 下一个阶段主要考察了对递归函数的 reverse engineering，首先在 `phase_4` 开始阶段打上断点，然后运行进入，首先查看下面这段汇编代码
 
-```assembly
+```js
   40101a:	be cf 25 40 00       	mov    $0x4025cf,%esi
   40101f:	b8 00 00 00 00       	mov    $0x0,%eax
   401024:	e8 c7 fb ff ff       	callq  400bf0 <__isoc99_sscanf@plt>
@@ -206,7 +204,7 @@ Phase 1 defused. How about the next one?
 
 可以发现需要我们通过 `scanf` 输入一些内容，通过在 `gdb` 中查看 `scanf` 需要的输入个数和类型如下
 
-```javascript
+```js
 (gdb) x /s 0x4025cf
 0x4025cf:       "%d %d"
 ```
@@ -215,7 +213,7 @@ Phase 1 defused. How about the next one?
 
 然后查看对应位置的汇编代码，发现整体逻辑是调用 `func4`，判断返回值是否为`0`，如果不是 `0`，那么直接跳到 `0x401058` 就触发爆炸，如果是 `0` 则可以继续判断输入的第二个数字是否是 `0`，如果是 `0`，那么顺利解除炸弹。
 
-```assembly
+```js
   40103a:	ba 0e 00 00 00       	mov    $0xe,%edx
   40103f:	be 00 00 00 00       	mov    $0x0,%esi
   401044:	8b 7c 24 08          	mov    0x8(%rsp),%edi
@@ -231,7 +229,7 @@ Phase 1 defused. How about the next one?
 
 在汇编代码中搜索 `func4` 即可找到对应的代码片段
 
-```assembly
+```js
 0000000000400fce <func4>:
   400fce:	48 83 ec 08          	sub    $0x8,%rsp
   400fd2:	89 d0                	mov    %edx,%eax
@@ -257,7 +255,7 @@ Phase 1 defused. How about the next one?
   40100b:	c3                   	retq   
 ```
 
-整体代码并不长，但是里面有两处存在递归调用，如果使用 `gdb` 进行单步调试会比较绕，所以这里直接对汇编代码进行反向工程，获得对应的c代码如下
+整体代码并不长，但是里面有两处存在递归调用，如果使用 `gdb` 进行单步调试会比较绕，所以这里直接对汇编代码进行反向工程，获得对应的 c 代码如下
 
 ```c
 int func4(int x, int a1, int a2) {
@@ -279,11 +277,11 @@ int func4(int x, int a1, int a2) {
 
 最终符合条件的值是 `0,1,3,7`，输入这四个值中的任意一个作为第一个数字输入，均可成功拆除炸弹。
 
-### 0x1.4 phase_5
+#### 0x1.5 phase_5
 
 进入到 `phase_5` 之后，注意到下面这一段汇编代码
 
-```assembly
+```js
   401078:	31 c0                	xor    %eax,%eax
   40107a:	e8 9c 02 00 00       	callq  40131b <string_length>
   40107f:	83 f8 06             	cmp    $0x6,%eax
@@ -295,7 +293,7 @@ int func4(int x, int a1, int a2) {
 
 继续往后执行，可以发现会进入到下面这一段循环代码中
 
-```assembly
+```js
   40108b:	0f b6 0c 03          	movzbl (%rbx,%rax,1),%ecx
   40108f:	88 0c 24             	mov    %cl,(%rsp)
   401092:	48 8b 14 24          	mov    (%rsp),%rdx
@@ -315,7 +313,7 @@ int func4(int x, int a1, int a2) {
 
  然后程序会以地址 `0x4024b0` 为起点，计算移动之后的地址所指向的内容，用寄存器 `%edx` 进行保存，可以通过在 `gdb` 中访问这个地址所对应的内存，得到下面的结果
 
-```javascript
+```js
 (gdb) x /s 0x4024b0
 0x4024b0 <array.3449>:  "maduiersnfotvbylSo you think you can stop the bomb with ctrl-c, do you?"
 ```
@@ -326,7 +324,7 @@ int func4(int x, int a1, int a2) {
 
 在跳出循环好，代码会进入到这个地方
 
-```assembly
+```js
   4010ae:	c6 44 24 16 00       	movb   $0x0,0x16(%rsp)
   4010b3:	be 5e 24 40 00       	mov    $0x40245e,%esi
   4010b8:	48 8d 7c 24 10       	lea    0x10(%rsp),%rdi
@@ -340,7 +338,7 @@ int func4(int x, int a1, int a2) {
 
 通过 `gdb` 查看以地址 `$0x40245e` 为起点的字符串是
 
-```javascript
+```js
 (gdb) x /s 0x40245e
 0x40245e:       "flyers"
 ```
@@ -351,13 +349,13 @@ int func4(int x, int a1, int a2) {
 
 分析 `flyers` 分别在序列中最先出现的位置是 `9, 15, 14, 5, 6, 7`，如果我们都输入小写字母，那么起始点就是 `96`，因为在 `anscii` 编码中 `a=97`，比他小且最靠近它的 `16` 的倍数就是 `96`，所以上面的值分别加上 `96` 可以得到下面的结果 `105, 111, 110, 101, 102, 103`，再将其转换成字符可以获得最后输入的 `6` 个字符分别是 `ionefg`。
 
-### 0x1.5 phase_6
+#### 0x1.6 phase_6
 
-第6阶段会比较复杂，主要考察了 `linked list` 这种数据结构，我们还是像之前一样，逐步分析。
+第 6 阶段会比较复杂，主要考察了 `linked list` 这种数据结构，我们还是像之前一样，逐步分析。
 
 首先进入的代码如下
 
-```assembly
+```js
   401100:	49 89 e5             	mov    %rsp,%r13
   401103:	48 89 e6             	mov    %rsp,%rsi
   401106:	e8 51 03 00 00       	callq  40145c <read_six_numbers>
@@ -378,7 +376,7 @@ int func4(int x, int a1, int a2) {
 
 然后代码会进入到下面的地方
 
-```assembly
+```js
   401128:	41 83 c4 01          	add    $0x1,%r12d
   40112c:	41 83 fc 06          	cmp    $0x6,%r12d
   401130:	74 21                	je     401153 <phase_6+0x5f>
@@ -399,7 +397,7 @@ int func4(int x, int a1, int a2) {
 
 跳出这个循环之后，会进入到下面这段代码
 
-```assembly
+```js
   401114:	4c 89 ed             	mov    %r13,%rbp
   401117:	41 8b 45 00          	mov    0x0(%r13),%eax
   40111b:	83 e8 01             	sub    $0x1,%eax
@@ -422,7 +420,7 @@ int func4(int x, int a1, int a2) {
 
 然后代码会进行到下面这里
 
-```assembly
+```js
   401153:	48 8d 74 24 18       	lea    0x18(%rsp),%rsi
   401158:	4c 89 f0             	mov    %r14,%rax
   40115b:	b9 07 00 00 00       	mov    $0x7,%ecx
@@ -447,7 +445,7 @@ for (int i; i < 6; ++i) {
 
 继续运行，会进入到下面的代码
 
-```assembly
+```js
   401197:	8b 0c 34             	mov    (%rsp,%rsi,1),%ecx
   40119a:	83 f9 01             	cmp    $0x1,%ecx
   40119d:	7e e4                	jle    401183 <phase_6+0x8f>
@@ -462,7 +460,7 @@ for (int i; i < 6; ++i) {
 
 继续运行到地址是 `0x401176` 的代码如下
 
-```assembly
+```js
   401176:	48 8b 52 08          	mov    0x8(%rdx),%rdx
   40117a:	83 c0 01             	add    $0x1,%eax
   40117d:	39 c8                	cmp    %ecx,%eax
@@ -476,7 +474,7 @@ for (int i; i < 6; ++i) {
 
 通过 `x/24 $rdx` 可以看到下面的结果
 
-```javascript
+```js
 0x6032d0 <node1>:       0x0000014c      0x00000001      0x006032e0      0x00000000
 0x6032e0 <node2>:       0x000000a8      0x00000002      0x006032f0      0x00000000
 0x6032f0 <node3>:       0x0000039c      0x00000003      0x00603300      0x00000000
@@ -491,7 +489,7 @@ for (int i; i < 6; ++i) {
 
 接着会进行下面这段代码
 
-```assembly
+```js
   4011ab:	48 8b 5c 24 20       	mov    0x20(%rsp),%rbx
   4011b0:	48 8d 44 24 28       	lea    0x28(%rsp),%rax
   4011b5:	48 8d 74 24 50       	lea    0x50(%rsp),%rsi
@@ -509,7 +507,7 @@ for (int i; i < 6; ++i) {
 
 最后会运行到下面这段代码
 
-```assembly
+```js
   4011d2:	48 c7 42 08 00 00 00 	movq   $0x0,0x8(%rdx)
   4011d9:	00 
   4011da:	bd 05 00 00 00       	mov    $0x5,%ebp
@@ -524,3 +522,97 @@ for (int i; i < 6; ++i) {
 
 看到这里，要求已经很清楚了，我们需要输入 `6` 个数字，每个数字 `7-` 之后表示取 `linked list` 中的第几个 `node`，依次取出来值之后，需要降序排列，所以通过比较上面 `linked list` 不同 `node` 的值，最终需要输入的结果为 `4 3 2 1 6 5`。
 
+#### 0x1.7 secret_phase
+
+除了标准的阶段外，代码中还藏了一个秘密阶段，通过 `bomb.c` 的注释可以发现这个秘密，在汇编代码中也可以搜索到这个阶段，不过想要进入这个阶段并不容易，下面我们来讲一下 secret_phase.
+
+在汇编代码中搜索 `secret_phase` 会找到如何函数在 `phase_defused` 中，接着看看这一段代码
+
+```js
+  4015f0:	be 19 26 40 00       	mov    $0x402619,%esi
+  4015f5:	bf 70 38 60 00       	mov    $0x603870,%edi
+  4015fa:	e8 f1 f5 ff ff       	callq  400bf0 <__isoc99_sscanf@plt>
+  4015ff:	83 f8 03             	cmp    $0x3,%eax
+  401602:	75 31                	jne    401635 <phase_defused+0x71>
+```
+
+这段代码开始调用了 `sscanf` ，它的两个参数分别为 `$esi` 和 `$edi`，可以通过 `x/s 0x402619, x/s 0x603870` 查看他们的具体数值分别是 `%d %d %s` 和 `<input_strings+240>: "1 0"`，且 `$eax` 作为 `sscanf` 的返回值，结果为 `2`，接着要和 `3` 进行比较，如果不相等的话，则会跳到最后退出，这时就无法进入 `secret_phase`。
+
+查阅一下 `sscanf` 函数，发现它会从一个字符串的开始位置检索特定的格式，这里检索的字符串为 `"1 0"`，格式是 `%d %d %s`，发现这里检索的字符串缺少最后一部分字符串输入，只有前两个数字的输入。
+
+另外可以发现 `"1 0"` 是第 `4` 个输入，从这里知道应该再对输入一个字符串，不过具体输入什么内容还要继续往后看。
+
+```js
+  401604:	be 22 26 40 00       	mov    $0x402622,%esi
+  401609:	48 8d 7c 24 10       	lea    0x10(%rsp),%rdi
+  40160e:	e8 25 fd ff ff       	callq  401338 <strings_not_equal>
+  401613:	85 c0                	test   %eax,%eax
+  401615:	75 1e                	jne    401635 <phase_defused+0x71>
+```
+
+发现这里调用了 `strings_not_equal` 这个函数对输入字符串进行判断，通过 `x /s 0x402622` 发现结果为 `DrEvil`，所以我们在第 `4` 个输入的地方加上这个字符串即可进入到 `secret_phase`.
+
+进入 `secret_phase` 后需要输入一个数字，先观察下面这段代码
+
+```js
+  401255:	e8 76 f9 ff ff       	callq  400bd0 <strtol@plt>
+  40125a:	48 89 c3             	mov    %rax,%rbx
+  40125d:	8d 40 ff             	lea    -0x1(%rax),%eax
+  401260:	3d e8 03 00 00       	cmp    $0x3e8,%eax
+  401265:	76 05                	jbe    40126c <secret_phase+0x2a>
+  401267:	e8 ce 01 00 00       	callq  40143a <explode_bomb>
+```
+
+这里调用了 `strtol` 这个函数，对输入的字符串进行长整数的转换并返回结果，接着通过 `lea -0x1(%rax),%eax` 执行一个 `-1` 操作，然后和 `0x3e8` 进行比较，这里转换成十进制就是 `1000`，所以要求输入的数字要 `<=1001`.
+
+接着发现在 `secret_phase` 中调用了 `fun7`，只需要函数返回值等于 `2` 即可解除炸弹，先找到 `func7` 对应的代码。
+
+```js
+0000000000401204 <fun7>:
+  401204:	48 83 ec 08          	sub    $0x8,%rsp
+  401208:	48 85 ff             	test   %rdi,%rdi
+  40120b:	74 2b                	je     401238 <fun7+0x34>
+  40120d:	8b 17                	mov    (%rdi),%edx
+  40120f:	39 f2                	cmp    %esi,%edx
+  401211:	7e 0d                	jle    401220 <fun7+0x1c>
+  401213:	48 8b 7f 08          	mov    0x8(%rdi),%rdi
+  401217:	e8 e8 ff ff ff       	callq  401204 <fun7>
+  40121c:	01 c0                	add    %eax,%eax
+  40121e:	eb 1d                	jmp    40123d <fun7+0x39>
+  401220:	b8 00 00 00 00       	mov    $0x0,%eax
+  401225:	39 f2                	cmp    %esi,%edx
+  401227:	74 14                	je     40123d <fun7+0x39>
+  401229:	48 8b 7f 10          	mov    0x10(%rdi),%rdi
+  40122d:	e8 d2 ff ff ff       	callq  401204 <fun7>
+  401232:	8d 44 00 01          	lea    0x1(%rax,%rax,1),%eax
+  401236:	eb 05                	jmp    40123d <fun7+0x39>
+  401238:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
+  40123d:	48 83 c4 08          	add    $0x8,%rsp
+  401241:	c3                   	retq   
+```
+发现这是一个递归函数，其中返回的地方有 `3` 个，分别是 `add  %eax,%eax`, `mov  $0x0,%eax` 和 `lea  0x1(%rax,%rax,1),%eax`，所以递归调用 `fun7`，第一次返回 `1`，第二次 `2*$eax` 即可满足条件。
+
+下面分析一下函数递归调用前的行为，发现有这两个地方 `mov 0x8(%rdi),%rdi` 和 `mov  0x10(%rdi),%rdi`，通过 `gdb` 去查看 `$rdi` 地址所指向的内容 `x/24 $rdi`，会发现这是一个二叉树，第一个是节点的值，后面分别是左子树和右子树的地址。
+
+```js
+0x6030f0 <n1>:  0x00000024      0x00000000      0x00603110      0x00000000
+0x603100 <n1+16>:       0x00603130      0x00000000      0x00000000      0x00000000
+0x603110 <n21>: 0x00000008      0x00000000      0x00603190      0x00000000
+0x603120 <n21+16>:      0x00603150      0x00000000      0x00000000      0x00000000
+0x603130 <n22>: 0x00000032      0x00000000      0x00603170      0x00000000
+0x603140 <n22+16>:      0x006031b0      0x00000000      0x00000000      0x00000000
+```
+
+画出二叉树的结构如下，需要返回结果是 `2`，那么第一次找左子树，第二次找右子树，这样第二次返回 `1`，第一次返回 `2*ret` 即可返回 `2`，所以最后的结果是 `0x16=22`。
+
+<img src="{{ site.baseurl }}/images/csapp-bomb/csapp_bomb_binary_tree.png" width="400"/>
+
+### 0x2 结语
+
+通过本次实验流程，熟悉了汇编和寄存器相关的内容，对栈帧以及函数调用也有了更深的理解，考察了一些数据结构的内容，刚开始阅读汇编代码会比较困难，不过重要的是耐心，一行一行理解背后的原理也需要毅力，不过最后在成功地拆除了炸弹之后还是很要成就感的！
+
+### 0x3 Reference
+
+- [CS:APP3e, Bryant and O'Hallaron (cmu.edu)](http://csapp.cs.cmu.edu/3e/labs.html)
+- [【精校中英字幕】2015 CMU 15-213 CSAPP 深入理解计算机系统 课程视频_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1iW411d7hd?p=7)
+- [深入理解计算机系统（CS:APP) - Bomb Lab 详解 viseator's blog](https://www.viseator.com/2017/06/21/CS_APP_BombLab/)
