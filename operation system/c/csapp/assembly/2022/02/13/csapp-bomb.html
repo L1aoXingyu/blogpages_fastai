@@ -93,7 +93,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      12 min read
+      14 min read
     
 </span></p>
 
@@ -120,18 +120,25 @@ window.onload = wrap_img;
   <div class="post-content e-content" itemprop="articleBody">
     <ul class="section-nav">
 <li class="toc-entry toc-h3"><a href="#0x0-introduction">0x0 Introduction</a></li>
-<li class="toc-entry toc-h3"><a href="#0x10-phase_1">0x1.0 phase_1</a></li>
-<li class="toc-entry toc-h3"><a href="#0x11-phase_2">0x1.1 phase_2</a></li>
-<li class="toc-entry toc-h3"><a href="#0x12-phase_3">0x1.2 phase_3</a></li>
-<li class="toc-entry toc-h3"><a href="#0x13-phase_4">0x1.3 phase_4</a></li>
-<li class="toc-entry toc-h3"><a href="#0x14-phase_5">0x1.4 phase_5</a></li>
-<li class="toc-entry toc-h3"><a href="#0x15-phase_6">0x1.5 phase_6</a></li>
+<li class="toc-entry toc-h3"><a href="#0x1-实验阶段">0x1 实验阶段</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#0x11-phase_1">0x1.1 phase_1</a></li>
+<li class="toc-entry toc-h4"><a href="#0x12-phase_2">0x1.2 phase_2</a></li>
+<li class="toc-entry toc-h4"><a href="#0x13-phase_3">0x1.3 phase_3</a></li>
+<li class="toc-entry toc-h4"><a href="#0x14-phase_4">0x1.4 phase_4</a></li>
+<li class="toc-entry toc-h4"><a href="#0x15-phase_5">0x1.5 phase_5</a></li>
+<li class="toc-entry toc-h4"><a href="#0x16-phase_6">0x1.6 phase_6</a></li>
+<li class="toc-entry toc-h4"><a href="#0x17-secret_phase">0x1.7 secret_phase</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h3"><a href="#0x2-结语">0x2 结语</a></li>
+<li class="toc-entry toc-h3"><a href="#0x3-reference">0x3 Reference</a></li>
 </ul><h3 id="0x0-introduction">
 <a class="anchor" href="#0x0-introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0 Introduction</h3>
 
-<p>该实验提供了一个 “binary bomb”，这是一个编译好的二进制程序，在运行过程中需要用户提供6次输入，如果有任何一次不正确，炸弹就会爆炸。</p>
+<p>该实验提供了一个 “binary bomb”，这是一个编译好的二进制程序，在运行过程中需要用户提供 6 次输入，如果有任何一次不正确，炸弹就会爆炸。</p>
 
-<p>在这个实验中，我们需要做逆向工程对炸弹进行拆解，对这个二进制程序进行反汇编后，通过阅读他的汇编代码，获取需要输入的6个字符串是什么。</p>
+<p>在这个实验中，我们需要做逆向工程对炸弹进行拆解，对这个二进制程序进行反汇编后，通过阅读他的汇编代码，获取需要输入的 6 个字符串是什么。</p>
 
 <p>在这次实验中，主要使用的工具如下：</p>
 
@@ -151,10 +158,13 @@ window.onload = wrap_img;
 
 <p><img src="/blogpages/images/csapp-bomb/bomb_preview.png" width="700"></p>
 
-<h3 id="0x10-phase_1">
-<a class="anchor" href="#0x10-phase_1" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.0 phase_1</h3>
+<h3 id="0x1-实验阶段">
+<a class="anchor" href="#0x1-%E5%AE%9E%E9%AA%8C%E9%98%B6%E6%AE%B5" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1 实验阶段</h3>
 
-<p>下面的c代码包含了第一阶段的所有内容</p>
+<h4 id="0x11-phase_1">
+<a class="anchor" href="#0x11-phase_1" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.1 phase_1</h4>
+
+<p>下面的 c 代码包含了第一阶段的所有内容</p>
 
 <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* Hmm...  Six phases must be more secure than one phase! */</span>
 <span class="n">input</span> <span class="o">=</span> <span class="n">read_line</span><span class="p">();</span>             <span class="cm">/* Get input                   */</span>
@@ -168,157 +178,157 @@ window.onload = wrap_img;
 
 <p>通过在汇编代码中搜索 <code class="language-plaintext highlighter-rouge">phase_1</code> 即可找到其在汇编代码中的片段</p>
 
-<pre><code class="language-assembly">0000000000400ee0 &lt;phase_1&gt;:
-  400ee0:	48 83 ec 08          	sub    $0x8,%rsp
-  400ee4:	be 00 24 40 00       	mov    $0x402400,%esi
-  400ee9:	e8 4a 04 00 00       	callq  401338 &lt;strings_not_equal&gt;
-  400eee:	85 c0                	test   %eax,%eax
-  400ef0:	74 05                	je     400ef7 &lt;phase_1+0x17&gt;
-  400ef2:	e8 43 05 00 00       	callq  40143a &lt;explode_bomb&gt;
-  400ef7:	48 83 c4 08          	add    $0x8,%rsp
-  400efb:	c3                   	retq   
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0000000000400</span><span class="nx">ee0</span> <span class="o">&lt;</span><span class="nx">phase_1</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">400</span><span class="nx">ee0</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">ec</span> <span class="mi">08</span>          	<span class="nx">sub</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">400</span><span class="nx">ee4</span><span class="p">:</span>	<span class="nx">be</span> <span class="mi">00</span> <span class="mi">24</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x402400</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">400</span><span class="nx">ee9</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">4</span><span class="nx">a</span> <span class="mi">04</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">401338</span> <span class="o">&lt;</span><span class="nx">strings_not_equal</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">eee</span><span class="p">:</span>	<span class="mi">85</span> <span class="nx">c0</span>                	<span class="nx">test</span>   <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">ef0</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">05</span>                	<span class="nx">je</span>     <span class="mi">400</span><span class="nx">ef7</span> <span class="o">&lt;</span><span class="nx">phase_1</span><span class="o">+</span><span class="mh">0x17</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">ef2</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">43</span> <span class="mi">05</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">ef7</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">08</span>          	<span class="nx">add</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">400</span><span class="nx">efb</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+</code></pre></div></div>
 
 <p>简单阅读这一段汇编代码，主要是调用了 <code class="language-plaintext highlighter-rouge">strings_not_equal</code> 这个函数，而通过名字可以大概了解这就是一个判断字符串是否相等的函数。</p>
 
 <p>而上面有一段代码将地址 <code class="language-plaintext highlighter-rouge">0x402400</code> 移动到寄存器 <code class="language-plaintext highlighter-rouge">%esi</code> 中，通过查表可以了解到 <code class="language-plaintext highlighter-rouge">%esi</code> 是函数的第二个参数，而调用 <code class="language-plaintext highlighter-rouge">phase_1</code> 时，汇编代码如下，发现是通过 <code class="language-plaintext highlighter-rouge">read_line</code> 这个函数，将用户输入的结果移动到寄存器 <code class="language-plaintext highlighter-rouge">%rdi</code> 中，而这恰好是函数的第一个参数，所以可以得到第一阶段即要对比用户输入的字符串和 <code class="language-plaintext highlighter-rouge">0x402400</code> 这个地址存放的字符串是否相等。</p>
 
-<pre><code class="language-assembly">  400e32:	e8 67 06 00 00       	callq  40149e &lt;read_line&gt;
-  400e37:	48 89 c7             	mov    %rax,%rdi
-  400e3a:	e8 a1 00 00 00       	callq  400ee0 &lt;phase_1&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">400</span><span class="nx">e32</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">67</span> <span class="mi">06</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40149</span><span class="nx">e</span> <span class="o">&lt;</span><span class="nx">read_line</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">e37</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">c7</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
+  <span class="mi">400</span><span class="nx">e3a</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">a1</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">ee0</span> <span class="o">&lt;</span><span class="nx">phase_1</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>通过 <code class="language-plaintext highlighter-rouge">cgdb</code> 启动程序，在 <code class="language-plaintext highlighter-rouge">phase_1</code> 处打断点，注意这里断点需要打到汇编代码中，可以直接通过 <code class="language-plaintext highlighter-rouge">b phase_1</code> 打断点，也可以通过地址进行打断点，比如 <code class="language-plaintext highlighter-rouge">b *0x400ee0</code>，接着直接运行。</p>
 
 <p>在 gdb 中通过 <code class="language-plaintext highlighter-rouge">ni</code> 可以在汇编代码中进行单步运行，我们可以运行到 <code class="language-plaintext highlighter-rouge">strings_not_equal</code> 这个函数调用前，接着通过 <code class="language-plaintext highlighter-rouge">p (char*)0x402400</code> 即可获得这个地址对应的字符串如下</p>
 
-<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">p</span> <span class="p">(</span><span class="nx">char</span><span class="o">*</span><span class="p">)(</span><span class="mh">0x402400</span><span class="p">)</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">p</span> <span class="p">(</span><span class="nx">char</span><span class="o">*</span><span class="p">)(</span><span class="mh">0x402400</span><span class="p">)</span>
 <span class="nx">$6</span> <span class="o">=</span> <span class="mh">0x402400</span> <span class="dl">"</span><span class="s2">Border relations with Canada have never been better.</span><span class="dl">"</span>
 </code></pre></div></div>
 
 <p>接着可以尝试在 <code class="language-plaintext highlighter-rouge">phase_1</code> 输入这段字符串，可以获得下面的结果，说明 <code class="language-plaintext highlighter-rouge">pahse_1</code> 的输入指令正确，炸弹已经成功拆除了。</p>
 
-<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Phase</span> <span class="mi">1</span> <span class="nx">defused</span><span class="p">.</span> <span class="nx">How</span> <span class="nx">about</span> <span class="nx">the</span> <span class="nx">next</span> <span class="nx">one</span><span class="p">?</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Phase</span> <span class="mi">1</span> <span class="nx">defused</span><span class="p">.</span> <span class="nx">How</span> <span class="nx">about</span> <span class="nx">the</span> <span class="nx">next</span> <span class="nx">one</span><span class="p">?</span>
 </code></pre></div></div>
 
-<h3 id="0x11-phase_2">
-<a class="anchor" href="#0x11-phase_2" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.1 phase_2</h3>
+<h4 id="0x12-phase_2">
+<a class="anchor" href="#0x12-phase_2" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.2 phase_2</h4>
 
 <p>接着需要输入第二段字符，首先可以通过 <code class="language-plaintext highlighter-rouge">b phase_2</code> 直接在第二阶段开始时打上断点，然后随意输入一段字符以进入这个函数。</p>
 
-<p>通过下面的汇编代码片段，发现调用了函数 <code class="language-plaintext highlighter-rouge">read_six_numbers</code>，其实通过函数名就可以发现这个函数需要输入6个数字，接着紧跟着的代码是执行 <code class="language-plaintext highlighter-rouge">cmpl $0x1, (%rsp)</code>，如果相等直接跳到 <code class="language-plaintext highlighter-rouge">0x400f30</code>，否则会调用 <code class="language-plaintext highlighter-rouge">explode_bomb</code>，这说明了要求输入的第一个数字必须是 1，否则炸弹会爆炸。</p>
+<p>通过下面的汇编代码片段，发现调用了函数 <code class="language-plaintext highlighter-rouge">read_six_numbers</code>，其实通过函数名就可以发现这个函数需要输入 6 个数字，接着紧跟着的代码是执行 <code class="language-plaintext highlighter-rouge">cmpl $0x1, (%rsp)</code>，如果相等直接跳到 <code class="language-plaintext highlighter-rouge">0x400f30</code>，否则会调用 <code class="language-plaintext highlighter-rouge">explode_bomb</code>，这说明了要求输入的第一个数字必须是 1，否则炸弹会爆炸。</p>
 
-<pre><code class="language-assembly">0000000000400efc &lt;phase_2&gt;:
-  400efc:	55                   	push   %rbp
-  400efd:	53                   	push   %rbx
-  400efe:	48 83 ec 28          	sub    $0x28,%rsp
-  400f02:	48 89 e6             	mov    %rsp,%rsi
-  400f05:	e8 52 05 00 00       	callq  40145c &lt;read_six_numbers&gt;
-  400f0a:	83 3c 24 01          	cmpl   $0x1,(%rsp)
-  400f0e:	74 20                	je     400f30 &lt;phase_2+0x34&gt;
-  400f10:	e8 25 05 00 00       	callq  40143a &lt;explode_bomb&gt;
-  400f15:	eb 19                	jmp    400f30 &lt;phase_2+0x34&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0000000000400</span><span class="nx">efc</span> <span class="o">&lt;</span><span class="nx">phase_2</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">400</span><span class="nx">efc</span><span class="p">:</span>	<span class="mi">55</span>                   	<span class="nx">push</span>   <span class="o">%</span><span class="nx">rbp</span>
+  <span class="mi">400</span><span class="nx">efd</span><span class="p">:</span>	<span class="mi">53</span>                   	<span class="nx">push</span>   <span class="o">%</span><span class="nx">rbx</span>
+  <span class="mi">400</span><span class="nx">efe</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">ec</span> <span class="mi">28</span>          	<span class="nx">sub</span>    <span class="nx">$0x28</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">400</span><span class="nx">f02</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">e6</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">rsi</span>
+  <span class="mi">400</span><span class="nx">f05</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">52</span> <span class="mi">05</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40145</span><span class="nx">c</span> <span class="o">&lt;</span><span class="nx">read_six_numbers</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">f0a</span><span class="p">:</span>	<span class="mi">83</span> <span class="mi">3</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">01</span>          	<span class="nx">cmpl</span>   <span class="nx">$0x1</span><span class="p">,(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">400</span><span class="nx">f0e</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">20</span>                	<span class="nx">je</span>     <span class="mi">400</span><span class="nx">f30</span> <span class="o">&lt;</span><span class="nx">phase_2</span><span class="o">+</span><span class="mh">0x34</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">f10</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">25</span> <span class="mi">05</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">f15</span><span class="p">:</span>	<span class="nx">eb</span> <span class="mi">19</span>                	<span class="nx">jmp</span>    <span class="mi">400</span><span class="nx">f30</span> <span class="o">&lt;</span><span class="nx">phase_2</span><span class="o">+</span><span class="mh">0x34</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
-<p>为了进一步确定 <code class="language-plaintext highlighter-rouge">read_six_numbers</code> 是要求我们输入6个数字，我们搜索对应的函数名，可以获得下面的汇编代码段</p>
+<p>为了进一步确定 <code class="language-plaintext highlighter-rouge">read_six_numbers</code> 是要求我们输入 6 个数字，我们搜索对应的函数名，可以获得下面的汇编代码段</p>
 
-<pre><code class="language-assembly">000000000040145c &lt;read_six_numbers&gt;:
-  40145c:	48 83 ec 18          	sub    $0x18,%rsp
-  401460:	48 89 f2             	mov    %rsi,%rdx
-  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx
-  401467:	48 8d 46 14          	lea    0x14(%rsi),%rax
-  40146b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
-  401470:	48 8d 46 10          	lea    0x10(%rsi),%rax
-  401474:	48 89 04 24          	mov    %rax,(%rsp)
-  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9
-  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8
-  401480:	be c3 25 40 00       	mov    $0x4025c3,%esi
-  401485:	b8 00 00 00 00       	mov    $0x0,%eax
-  40148a:	e8 61 f7 ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt;
-  40148f:	83 f8 05             	cmp    $0x5,%eax
-  401492:	7f 05                	jg     401499 &lt;read_six_numbers+0x3d&gt;
-  401494:	e8 a1 ff ff ff       	callq  40143a &lt;explode_bomb&gt;
-  401499:	48 83 c4 18          	add    $0x18,%rsp
-  40149d:	c3                   	retq   
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">000000000040145</span><span class="nx">c</span> <span class="o">&lt;</span><span class="nx">read_six_numbers</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">40145</span><span class="nx">c</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">ec</span> <span class="mi">18</span>          	<span class="nx">sub</span>    <span class="nx">$0x18</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">401460</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">f2</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="o">%</span><span class="nx">rdx</span>
+  <span class="mi">401463</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">4</span><span class="nx">e</span> <span class="mi">04</span>          	<span class="nx">lea</span>    <span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="nx">rsi</span><span class="p">),</span><span class="o">%</span><span class="nx">rcx</span>
+  <span class="mi">401467</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">46</span> <span class="mi">14</span>          	<span class="nx">lea</span>    <span class="mh">0x14</span><span class="p">(</span><span class="o">%</span><span class="nx">rsi</span><span class="p">),</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">40146</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="mi">44</span> <span class="mi">24</span> <span class="mi">08</span>       	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">401470</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">46</span> <span class="mi">10</span>          	<span class="nx">lea</span>    <span class="mh">0x10</span><span class="p">(</span><span class="o">%</span><span class="nx">rsi</span><span class="p">),</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">401474</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="mi">04</span> <span class="mi">24</span>          	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rax</span><span class="p">,(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">401478</span><span class="p">:</span>	<span class="mi">4</span><span class="nx">c</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">4</span><span class="nx">e</span> <span class="mi">0</span><span class="nx">c</span>          	<span class="nx">lea</span>    <span class="mh">0xc</span><span class="p">(</span><span class="o">%</span><span class="nx">rsi</span><span class="p">),</span><span class="o">%</span><span class="nx">r9</span>
+  <span class="mi">40147</span><span class="nx">c</span><span class="p">:</span>	<span class="mi">4</span><span class="nx">c</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">46</span> <span class="mi">08</span>          	<span class="nx">lea</span>    <span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rsi</span><span class="p">),</span><span class="o">%</span><span class="nx">r8</span>
+  <span class="mi">401480</span><span class="p">:</span>	<span class="nx">be</span> <span class="nx">c3</span> <span class="mi">25</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x4025c3</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">401485</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40148</span><span class="nx">a</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">61</span> <span class="nx">f7</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">bf0</span> <span class="o">&lt;</span><span class="nx">__isoc99_sscanf</span><span class="p">@</span><span class="nd">plt</span><span class="o">&gt;</span>
+  <span class="mi">40148</span><span class="nx">f</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">f8</span> <span class="mi">05</span>             	<span class="nx">cmp</span>    <span class="nx">$0x5</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401492</span><span class="p">:</span>	<span class="mi">7</span><span class="nx">f</span> <span class="mi">05</span>                	<span class="nx">jg</span>     <span class="mi">401499</span> <span class="o">&lt;</span><span class="nx">read_six_numbers</span><span class="o">+</span><span class="mh">0x3d</span><span class="o">&gt;</span>
+  <span class="mi">401494</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">a1</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+  <span class="mi">401499</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">18</span>          	<span class="nx">add</span>    <span class="nx">$0x18</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">40149</span><span class="nx">d</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+</code></pre></div></div>
 
 <p>注意 <code class="language-plaintext highlighter-rouge">0x40148f</code> 对应的代码行，scanf 返回的结果和 5 进行比较，需要比 5 大，否则炸弹会爆炸。</p>
 
 <p>接着代码会跳到 <code class="language-plaintext highlighter-rouge">0x400f30</code>，继续往下找对应的代码，会发现这一段代码比较重要。</p>
 
-<pre><code class="language-assembly">  400f17:	8b 43 fc             	mov    -0x4(%rbx),%eax    
-  400f1a:	01 c0                	add    %eax,%eax
-  400f1c:	39 03                	cmp    %eax,(%rbx)
-  400f1e:	74 05                	je     400f25 &lt;phase_2+0x29&gt;
-  400f20:	e8 15 05 00 00       	callq  40143a &lt;explode_bomb&gt;
-  400f25:	48 83 c3 04          	add    $0x4,%rbx
-  400f29:	48 39 eb             	cmp    %rbp,%rbx
-  400f2c:	75 e9                	jne    400f17 &lt;phase_2+0x1b&gt;
-  400f2e:	eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt;
-  400f30:	48 8d 5c 24 04       	lea    0x4(%rsp),%rbx
-  400f35:	48 8d 6c 24 18       	lea    0x18(%rsp),%rbp
-  400f3a:	eb db                	jmp    400f17 &lt;phase_2+0x1b&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">400</span><span class="nx">f17</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">b</span> <span class="mi">43</span> <span class="nx">fc</span>             	<span class="nx">mov</span>    <span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="nx">rbx</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>    
+  <span class="mi">400</span><span class="nx">f1a</span><span class="p">:</span>	<span class="mi">01</span> <span class="nx">c0</span>                	<span class="nx">add</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">f1c</span><span class="p">:</span>	<span class="mi">39</span> <span class="mi">03</span>                	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,(</span><span class="o">%</span><span class="nx">rbx</span><span class="p">)</span>
+  <span class="mi">400</span><span class="nx">f1e</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">05</span>                	<span class="nx">je</span>     <span class="mi">400</span><span class="nx">f25</span> <span class="o">&lt;</span><span class="nx">phase_2</span><span class="o">+</span><span class="mh">0x29</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">f20</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">15</span> <span class="mi">05</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">f25</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c3</span> <span class="mi">04</span>          	<span class="nx">add</span>    <span class="nx">$0x4</span><span class="p">,</span><span class="o">%</span><span class="nx">rbx</span>
+  <span class="mi">400</span><span class="nx">f29</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">39</span> <span class="nx">eb</span>             	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">rbp</span><span class="p">,</span><span class="o">%</span><span class="nx">rbx</span>
+  <span class="mi">400</span><span class="nx">f2c</span><span class="p">:</span>	<span class="mi">75</span> <span class="nx">e9</span>                	<span class="nx">jne</span>    <span class="mi">400</span><span class="nx">f17</span> <span class="o">&lt;</span><span class="nx">phase_2</span><span class="o">+</span><span class="mh">0x1b</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">f2e</span><span class="p">:</span>	<span class="nx">eb</span> <span class="mi">0</span><span class="nx">c</span>                	<span class="nx">jmp</span>    <span class="mi">400</span><span class="nx">f3c</span> <span class="o">&lt;</span><span class="nx">phase_2</span><span class="o">+</span><span class="mh">0x40</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">f30</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">5</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">04</span>       	<span class="nx">lea</span>    <span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rbx</span>
+  <span class="mi">400</span><span class="nx">f35</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">6</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">18</span>       	<span class="nx">lea</span>    <span class="mh">0x18</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rbp</span>
+  <span class="mi">400</span><span class="nx">f3a</span><span class="p">:</span>	<span class="nx">eb</span> <span class="nx">db</span>                	<span class="nx">jmp</span>    <span class="mi">400</span><span class="nx">f17</span> <span class="o">&lt;</span><span class="nx">phase_2</span><span class="o">+</span><span class="mh">0x1b</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
-<p>其中 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是<strong>4个字节</strong>，那么<code class="language-plaintext highlighter-rouge">0x4(%rsx)</code> 表示第二个输入的数字，<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code> 并不是表示第六个输入的数字，而是表示第六个数字之后的地址，后面会讲为什么需要这样设置。</p>
+<p>其中 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个输入的数字，因为是 int 类型，所以内存中占用的长度是** 4 个字节**，那么<code class="language-plaintext highlighter-rouge">0x4(%rsx)</code> 表示第二个输入的数字，<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code> 并不是表示第六个输入的数字，而是表示第六个数字之后的地址，后面会讲为什么需要这样设置。</p>
 
-<p>可以发现代码又跳转到 <code class="language-plaintext highlighter-rouge">0x400f17</code> 地址，首先 <code class="language-plaintext highlighter-rouge">mov  -0x4(%rbx),%eax</code> 即可将第一个输入的数字放到寄存器 <code class="language-plaintext highlighter-rouge">%eax</code> 中，然后 <code class="language-plaintext highlighter-rouge">add %eax,%eax</code> 其实就是将数字<code class="language-plaintext highlighter-rouge">*2</code>，然后判断 <code class="language-plaintext highlighter-rouge">%eax</code> 和 <code class="language-plaintext highlighter-rouge">(%rbx)</code> 是否相等，如果不相等则炸弹会爆炸，由此可以看出我们需要输入6个数字，第一个是1，然后每一个后面的数字都是前面数字的两倍。</p>
+<p>可以发现代码又跳转到 <code class="language-plaintext highlighter-rouge">0x400f17</code> 地址，首先 <code class="language-plaintext highlighter-rouge">mov  -0x4(%rbx),%eax</code> 即可将第一个输入的数字放到寄存器 <code class="language-plaintext highlighter-rouge">%eax</code> 中，然后 <code class="language-plaintext highlighter-rouge">add %eax,%eax</code> 其实就是将数字<code class="language-plaintext highlighter-rouge">*2</code>，然后判断 <code class="language-plaintext highlighter-rouge">%eax</code> 和 <code class="language-plaintext highlighter-rouge">(%rbx)</code> 是否相等，如果不相等则炸弹会爆炸，由此可以看出我们需要输入 6 个数字，第一个是 1，然后每一个后面的数字都是前面数字的两倍。</p>
 
-<p>最后可以通过 <code class="language-plaintext highlighter-rouge">add $0x4,%rbx</code> 不断遍历下一个元素，然后通过 <code class="language-plaintext highlighter-rouge">%rbp</code> 和 <code class="language-plaintext highlighter-rouge">%rbx</code> 是否相等的判断来决定跳出循环，注意 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个数字，那么<code class="language-plaintext highlighter-rouge">0x14(%rsp)</code>表示第六个数字，所以<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code>表示第六个数字之后的地址，通过和这个地址作比较，可以确保遍历完所有的6个数字。</p>
+<p>最后可以通过 <code class="language-plaintext highlighter-rouge">add $0x4,%rbx</code> 不断遍历下一个元素，然后通过 <code class="language-plaintext highlighter-rouge">%rbp</code> 和 <code class="language-plaintext highlighter-rouge">%rbx</code> 是否相等的判断来决定跳出循环，注意 <code class="language-plaintext highlighter-rouge">(%rsp)</code> 表示第一个数字，那么<code class="language-plaintext highlighter-rouge">0x14(%rsp)</code>表示第六个数字，所以<code class="language-plaintext highlighter-rouge">0x18(%rsp)</code>表示第六个数字之后的地址，通过和这个地址作比较，可以确保遍历完所有的 6 个数字。</p>
 
-<p>最后这6个数字为 <code class="language-plaintext highlighter-rouge">1 2 4 8 16 32</code>，输入这些数字即可解除第二阶段的炸弹。</p>
+<p>最后这 6 个数字为 <code class="language-plaintext highlighter-rouge">1 2 4 8 16 32</code>，输入这些数字即可解除第二阶段的炸弹。</p>
 
-<h3 id="0x12-phase_3">
-<a class="anchor" href="#0x12-phase_3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.2 phase_3</h3>
+<h4 id="0x13-phase_3">
+<a class="anchor" href="#0x13-phase_3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 phase_3</h4>
 
 <p>接着需要输入第三段字符，首先可以通过 <code class="language-plaintext highlighter-rouge">b phase_3</code> 直接在第三阶段开始的时候打上断点，然后输入一段字符以进入这个函数。</p>
 
 <p>通过阅读下面这段汇编代码，可以发现，<code class="language-plaintext highlighter-rouge">scanf</code> 的返回值需要大于<code class="language-plaintext highlighter-rouge">1</code>，否则炸弹就会爆炸，这也就是说至少需要输入<code class="language-plaintext highlighter-rouge">2</code>个数字。</p>
 
-<p>接着继续查看下面的代码，发现需要比较 <code class="language-plaintext highlighter-rouge">$0x7</code> 和 <code class="language-plaintext highlighter-rouge">0x8(%rsp)</code>，通过 <code class="language-plaintext highlighter-rouge">x (%rsp+0x8)</code> ，可以发现<code class="language-plaintext highlighter-rouge">0x8(%rsp)</code> 表示第一个数字的地址，进一步可以发现 <code class="language-plaintext highlighter-rouge">0xc(%rsp)</code>表示第二个数字的地址，地址差距是4个字节，说明是 int32 的数据类型。</p>
+<p>接着继续查看下面的代码，发现需要比较 <code class="language-plaintext highlighter-rouge">$0x7</code> 和 <code class="language-plaintext highlighter-rouge">0x8(%rsp)</code>，通过 <code class="language-plaintext highlighter-rouge">x (%rsp+0x8)</code> ，可以发现<code class="language-plaintext highlighter-rouge">0x8(%rsp)</code> 表示第一个数字的地址，进一步可以发现 <code class="language-plaintext highlighter-rouge">0xc(%rsp)</code>表示第二个数字的地址，地址差距是 4 个字节，说明是 int32 的数据类型。</p>
 
-<pre><code class="language-assembly">  400f6a:	83 7c 24 08 07       	cmpl   $0x7,0x8(%rsp)
-  400f6f:	77 3c                	ja     400fad &lt;phase_3+0x6a&gt;
-  ...
-  400fad:	e8 88 04 00 00       	callq  40143a &lt;explode_bomb&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">400</span><span class="nx">f6a</span><span class="p">:</span>	<span class="mi">83</span> <span class="mi">7</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">08</span> <span class="mi">07</span>       	<span class="nx">cmpl</span>   <span class="nx">$0x7</span><span class="p">,</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">400</span><span class="nx">f6f</span><span class="p">:</span>	<span class="mi">77</span> <span class="mi">3</span><span class="nx">c</span>                	<span class="nx">ja</span>     <span class="mi">400</span><span class="nx">fad</span> <span class="o">&lt;</span><span class="nx">phase_3</span><span class="o">+</span><span class="mh">0x6a</span><span class="o">&gt;</span>
+  <span class="p">...</span>
+  <span class="mi">400</span><span class="nx">fad</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">88</span> <span class="mi">04</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>所以这一段代码即表示如果输入的第一个参数比<code class="language-plaintext highlighter-rouge">7</code>大，则会跳到 <code class="language-plaintext highlighter-rouge">0x400fad</code> 这个位置继续执行，而这个位置执行的函数为 <code class="language-plaintext highlighter-rouge">explode_bomb</code>，这也就是间接说明了需要输入的第一个数字<code class="language-plaintext highlighter-rouge">&lt;=7</code>。</p>
 
 <p>接着继续执行下面的代码，首先将第一个数字放到寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 中，然后执行 <code class="language-plaintext highlighter-rouge">jmpq</code> 指令，跳转的地址是 <code class="language-plaintext highlighter-rouge">0x402470 + 8 * $rax</code> 位置的指针指向的内容，这里我们可以通过在 <code class="language-plaintext highlighter-rouge">gdb</code> 中输入 <code class="language-plaintext highlighter-rouge">ni</code> 进行单步执行，来判断最终代码跳转的位置，如果输入的第一个数字是<code class="language-plaintext highlighter-rouge">1</code>，那么也可以通过<code class="language-plaintext highlighter-rouge">p/x *(0x402470+8)</code>或者是 <code class="language-plaintext highlighter-rouge">x/x 0x402470+8</code> 来计算出具体的位置。</p>
 
-<pre><code class="language-assembly">  400f71:	8b 44 24 08          	mov    0x8(%rsp),%eax
-  400f75:	ff 24 c5 70 24 40 00 	jmpq   *0x402470(,%rax,8)
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">400</span><span class="nx">f71</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">b</span> <span class="mi">44</span> <span class="mi">24</span> <span class="mi">08</span>          	<span class="nx">mov</span>    <span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">f75</span><span class="p">:</span>	<span class="nx">ff</span> <span class="mi">24</span> <span class="nx">c5</span> <span class="mi">70</span> <span class="mi">24</span> <span class="mi">40</span> <span class="mi">00</span> 	<span class="nx">jmpq</span>   <span class="o">*</span><span class="mh">0x402470</span><span class="p">(,</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span>
+</code></pre></div></div>
 
 <p>接着直接跳到对应的位置去查看代码，可以发现下面的代码需要比较输入的第二个数字和 <code class="language-plaintext highlighter-rouge">0x137</code> 的大小，因为首先通过 <code class="language-plaintext highlighter-rouge">mov $0x137,%eax</code> 将 <code class="language-plaintext highlighter-rouge">0x137</code> 移动到寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 中，然后通过 <code class="language-plaintext highlighter-rouge">cmp 0xc(%rsp),%eax</code> 来比较寄存器 <code class="language-plaintext highlighter-rouge">$eax</code> 的值以及地址 <code class="language-plaintext highlighter-rouge">0xc(%rsp)</code>  指向内存的值，从前面可以知道这是第二个输入的数字。</p>
 
-<pre><code class="language-assembly">  400fb9:	b8 37 01 00 00       	mov    $0x137,%eax
-  400fbe:	3b 44 24 0c          	cmp    0xc(%rsp),%eax
-  400fc2:	74 05                	je     400fc9 &lt;phase_3+0x86&gt;
-  400fc4:	e8 71 04 00 00       	callq  40143a &lt;explode_bomb&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">400</span><span class="nx">fb9</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">37</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x137</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">fbe</span><span class="p">:</span>	<span class="mi">3</span><span class="nx">b</span> <span class="mi">44</span> <span class="mi">24</span> <span class="mi">0</span><span class="nx">c</span>          	<span class="nx">cmp</span>    <span class="mh">0xc</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">fc2</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">05</span>                	<span class="nx">je</span>     <span class="mi">400</span><span class="nx">fc9</span> <span class="o">&lt;</span><span class="nx">phase_3</span><span class="o">+</span><span class="mh">0x86</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">fc4</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">71</span> <span class="mi">04</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>所以输入的第二个数字换成十进制则是 <code class="language-plaintext highlighter-rouge">311</code> ，于是输入 <code class="language-plaintext highlighter-rouge">1 311</code> 即可接触第三个炸弹，因为要求第一个数字 <code class="language-plaintext highlighter-rouge">&lt;=7</code>，所以这里只描述了一种可能性，也可以尝试第一个数字输入是<code class="language-plaintext highlighter-rouge">2</code>，会发现程序会跳到 <code class="language-plaintext highlighter-rouge">0x400f83</code>，需要输入的第二个数字是 <code class="language-plaintext highlighter-rouge">707</code>.</p>
 
-<h3 id="0x13-phase_4">
-<a class="anchor" href="#0x13-phase_4" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 phase_4</h3>
+<h4 id="0x14-phase_4">
+<a class="anchor" href="#0x14-phase_4" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.4 phase_4</h4>
 
 <p>下一个阶段主要考察了对递归函数的 reverse engineering，首先在 <code class="language-plaintext highlighter-rouge">phase_4</code> 开始阶段打上断点，然后运行进入，首先查看下面这段汇编代码</p>
 
-<pre><code class="language-assembly">  40101a:	be cf 25 40 00       	mov    $0x4025cf,%esi
-  40101f:	b8 00 00 00 00       	mov    $0x0,%eax
-  401024:	e8 c7 fb ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt;
-  401029:	83 f8 02             	cmp    $0x2,%eax
-  40102c:	75 07                	jne    401035 &lt;phase_4+0x29&gt;
-  40102e:	83 7c 24 08 0e       	cmpl   $0xe,0x8(%rsp)
-  401033:	76 05                	jbe    40103a &lt;phase_4+0x2e&gt;
-  401035:	e8 00 04 00 00       	callq  40143a &lt;explode_bomb&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">40101</span><span class="nx">a</span><span class="p">:</span>	<span class="nx">be</span> <span class="nx">cf</span> <span class="mi">25</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x4025cf</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">40101</span><span class="nx">f</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401024</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">c7</span> <span class="nx">fb</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">bf0</span> <span class="o">&lt;</span><span class="nx">__isoc99_sscanf</span><span class="p">@</span><span class="nd">plt</span><span class="o">&gt;</span>
+  <span class="mi">401029</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">f8</span> <span class="mi">02</span>             	<span class="nx">cmp</span>    <span class="nx">$0x2</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40102</span><span class="nx">c</span><span class="p">:</span>	<span class="mi">75</span> <span class="mi">07</span>                	<span class="nx">jne</span>    <span class="mi">401035</span> <span class="o">&lt;</span><span class="nx">phase_4</span><span class="o">+</span><span class="mh">0x29</span><span class="o">&gt;</span>
+  <span class="mi">40102</span><span class="nx">e</span><span class="p">:</span>	<span class="mi">83</span> <span class="mi">7</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">08</span> <span class="mi">0</span><span class="nx">e</span>       	<span class="nx">cmpl</span>   <span class="nx">$0xe</span><span class="p">,</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">401033</span><span class="p">:</span>	<span class="mi">76</span> <span class="mi">05</span>                	<span class="nx">jbe</span>    <span class="mi">40103</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">phase_4</span><span class="o">+</span><span class="mh">0x2e</span><span class="o">&gt;</span>
+  <span class="mi">401035</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">00</span> <span class="mi">04</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>可以发现需要我们通过 <code class="language-plaintext highlighter-rouge">scanf</code> 输入一些内容，通过在 <code class="language-plaintext highlighter-rouge">gdb</code> 中查看 <code class="language-plaintext highlighter-rouge">scanf</code> 需要的输入个数和类型如下</p>
 
-<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="nx">s</span> <span class="mh">0x4025cf</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="nx">s</span> <span class="mh">0x4025cf</span>
 <span class="mh">0x4025cf</span><span class="p">:</span>       <span class="dl">"</span><span class="s2">%d %d</span><span class="dl">"</span>
 </code></pre></div></div>
 
@@ -326,47 +336,47 @@ window.onload = wrap_img;
 
 <p>然后查看对应位置的汇编代码，发现整体逻辑是调用 <code class="language-plaintext highlighter-rouge">func4</code>，判断返回值是否为<code class="language-plaintext highlighter-rouge">0</code>，如果不是 <code class="language-plaintext highlighter-rouge">0</code>，那么直接跳到 <code class="language-plaintext highlighter-rouge">0x401058</code> 就触发爆炸，如果是 <code class="language-plaintext highlighter-rouge">0</code> 则可以继续判断输入的第二个数字是否是 <code class="language-plaintext highlighter-rouge">0</code>，如果是 <code class="language-plaintext highlighter-rouge">0</code>，那么顺利解除炸弹。</p>
 
-<pre><code class="language-assembly">  40103a:	ba 0e 00 00 00       	mov    $0xe,%edx
-  40103f:	be 00 00 00 00       	mov    $0x0,%esi
-  401044:	8b 7c 24 08          	mov    0x8(%rsp),%edi
-  401048:	e8 81 ff ff ff       	callq  400fce &lt;func4&gt;
-  40104d:	85 c0                	test   %eax,%eax
-  40104f:	75 07                	jne    401058 &lt;phase_4+0x4c&gt;
-  401051:	83 7c 24 0c 00       	cmpl   $0x0,0xc(%rsp)
-  401056:	74 05                	je     40105d &lt;phase_4+0x51&gt;
-  401058:	e8 dd 03 00 00       	callq  40143a &lt;explode_bomb&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">40103</span><span class="nx">a</span><span class="p">:</span>	<span class="nx">ba</span> <span class="mi">0</span><span class="nx">e</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0xe</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">40103</span><span class="nx">f</span><span class="p">:</span>	<span class="nx">be</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">401044</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">b</span> <span class="mi">7</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">08</span>          	<span class="nx">mov</span>    <span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">edi</span>
+  <span class="mi">401048</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">81</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">fce</span> <span class="o">&lt;</span><span class="nx">func4</span><span class="o">&gt;</span>
+  <span class="mi">40104</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">85</span> <span class="nx">c0</span>                	<span class="nx">test</span>   <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40104</span><span class="nx">f</span><span class="p">:</span>	<span class="mi">75</span> <span class="mi">07</span>                	<span class="nx">jne</span>    <span class="mi">401058</span> <span class="o">&lt;</span><span class="nx">phase_4</span><span class="o">+</span><span class="mh">0x4c</span><span class="o">&gt;</span>
+  <span class="mi">401051</span><span class="p">:</span>	<span class="mi">83</span> <span class="mi">7</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">0</span><span class="nx">c</span> <span class="mi">00</span>       	<span class="nx">cmpl</span>   <span class="nx">$0x0</span><span class="p">,</span><span class="mh">0xc</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">401056</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">05</span>                	<span class="nx">je</span>     <span class="mi">40105</span><span class="nx">d</span> <span class="o">&lt;</span><span class="nx">phase_4</span><span class="o">+</span><span class="mh">0x51</span><span class="o">&gt;</span>
+  <span class="mi">401058</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">dd</span> <span class="mi">03</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>看到这里，整体已经比较清晰了，输入两个数字，第一个需要不比 <code class="language-plaintext highlighter-rouge">14</code> 大，第二个必须是<code class="language-plaintext highlighter-rouge">0</code>，然后调用 <code class="language-plaintext highlighter-rouge">func4</code> 需要保证返回值是 <code class="language-plaintext highlighter-rouge">0</code>，而其输入的参数分别在寄存器 <code class="language-plaintext highlighter-rouge">%rdi, %rsi, %rdx</code>，继续分析这些寄存器的获得方法，可以发现，第一个参数就是我们输入的第一个数字，第二个参数是 <code class="language-plaintext highlighter-rouge">0</code>，第三个参数是 <code class="language-plaintext highlighter-rouge">14</code>，所以接下来只需要进一步分析 <code class="language-plaintext highlighter-rouge">func4</code> 即可。</p>
 
 <p>在汇编代码中搜索 <code class="language-plaintext highlighter-rouge">func4</code> 即可找到对应的代码片段</p>
 
-<pre><code class="language-assembly">0000000000400fce &lt;func4&gt;:
-  400fce:	48 83 ec 08          	sub    $0x8,%rsp
-  400fd2:	89 d0                	mov    %edx,%eax
-  400fd4:	29 f0                	sub    %esi,%eax
-  400fd6:	89 c1                	mov    %eax,%ecx
-  400fd8:	c1 e9 1f             	shr    $0x1f,%ecx
-  400fdb:	01 c8                	add    %ecx,%eax
-  400fdd:	d1 f8                	sar    %eax
-  400fdf:	8d 0c 30             	lea    (%rax,%rsi,1),%ecx
-  400fe2:	39 f9                	cmp    %edi,%ecx
-  400fe4:	7e 0c                	jle    400ff2 &lt;func4+0x24&gt;
-  400fe6:	8d 51 ff             	lea    -0x1(%rcx),%edx
-  400fe9:	e8 e0 ff ff ff       	callq  400fce &lt;func4&gt;
-  400fee:	01 c0                	add    %eax,%eax
-  400ff0:	eb 15                	jmp    401007 &lt;func4+0x39&gt;
-  400ff2:	b8 00 00 00 00       	mov    $0x0,%eax
-  400ff7:	39 f9                	cmp    %edi,%ecx
-  400ff9:	7d 0c                	jge    401007 &lt;func4+0x39&gt;
-  400ffb:	8d 71 01             	lea    0x1(%rcx),%esi
-  400ffe:	e8 cb ff ff ff       	callq  400fce &lt;func4&gt;
-  401003:	8d 44 00 01          	lea    0x1(%rax,%rax,1),%eax
-  401007:	48 83 c4 08          	add    $0x8,%rsp
-  40100b:	c3                   	retq   
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0000000000400</span><span class="nx">fce</span> <span class="o">&lt;</span><span class="nx">func4</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">400</span><span class="nx">fce</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">ec</span> <span class="mi">08</span>          	<span class="nx">sub</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">400</span><span class="nx">fd2</span><span class="p">:</span>	<span class="mi">89</span> <span class="nx">d0</span>                	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">edx</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">fd4</span><span class="p">:</span>	<span class="mi">29</span> <span class="nx">f0</span>                	<span class="nx">sub</span>    <span class="o">%</span><span class="nx">esi</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">fd6</span><span class="p">:</span>	<span class="mi">89</span> <span class="nx">c1</span>                	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">400</span><span class="nx">fd8</span><span class="p">:</span>	<span class="nx">c1</span> <span class="nx">e9</span> <span class="mi">1</span><span class="nx">f</span>             	<span class="nx">shr</span>    <span class="nx">$0x1f</span><span class="p">,</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">400</span><span class="nx">fdb</span><span class="p">:</span>	<span class="mi">01</span> <span class="nx">c8</span>                	<span class="nx">add</span>    <span class="o">%</span><span class="nx">ecx</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">fdd</span><span class="p">:</span>	<span class="nx">d1</span> <span class="nx">f8</span>                	<span class="nx">sar</span>    <span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">fdf</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">d</span> <span class="mi">0</span><span class="nx">c</span> <span class="mi">30</span>             	<span class="nx">lea</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">400</span><span class="nx">fe2</span><span class="p">:</span>	<span class="mi">39</span> <span class="nx">f9</span>                	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">edi</span><span class="p">,</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">400</span><span class="nx">fe4</span><span class="p">:</span>	<span class="mi">7</span><span class="nx">e</span> <span class="mi">0</span><span class="nx">c</span>                	<span class="nx">jle</span>    <span class="mi">400</span><span class="nx">ff2</span> <span class="o">&lt;</span><span class="nx">func4</span><span class="o">+</span><span class="mh">0x24</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">fe6</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">d</span> <span class="mi">51</span> <span class="nx">ff</span>             	<span class="nx">lea</span>    <span class="o">-</span><span class="mh">0x1</span><span class="p">(</span><span class="o">%</span><span class="nx">rcx</span><span class="p">),</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">400</span><span class="nx">fe9</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">e0</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">fce</span> <span class="o">&lt;</span><span class="nx">func4</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">fee</span><span class="p">:</span>	<span class="mi">01</span> <span class="nx">c0</span>                	<span class="nx">add</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">ff0</span><span class="p">:</span>	<span class="nx">eb</span> <span class="mi">15</span>                	<span class="nx">jmp</span>    <span class="mi">401007</span> <span class="o">&lt;</span><span class="nx">func4</span><span class="o">+</span><span class="mh">0x39</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">ff2</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">400</span><span class="nx">ff7</span><span class="p">:</span>	<span class="mi">39</span> <span class="nx">f9</span>                	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">edi</span><span class="p">,</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">400</span><span class="nx">ff9</span><span class="p">:</span>	<span class="mi">7</span><span class="nx">d</span> <span class="mi">0</span><span class="nx">c</span>                	<span class="nx">jge</span>    <span class="mi">401007</span> <span class="o">&lt;</span><span class="nx">func4</span><span class="o">+</span><span class="mh">0x39</span><span class="o">&gt;</span>
+  <span class="mi">400</span><span class="nx">ffb</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">d</span> <span class="mi">71</span> <span class="mi">01</span>             	<span class="nx">lea</span>    <span class="mh">0x1</span><span class="p">(</span><span class="o">%</span><span class="nx">rcx</span><span class="p">),</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">400</span><span class="nx">ffe</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">cb</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">fce</span> <span class="o">&lt;</span><span class="nx">func4</span><span class="o">&gt;</span>
+  <span class="mi">401003</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">d</span> <span class="mi">44</span> <span class="mi">00</span> <span class="mi">01</span>          	<span class="nx">lea</span>    <span class="mh">0x1</span><span class="p">(</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401007</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">08</span>          	<span class="nx">add</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">40100</span><span class="nx">b</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+</code></pre></div></div>
 
-<p>整体代码并不长，但是里面有两处存在递归调用，如果使用 <code class="language-plaintext highlighter-rouge">gdb</code> 进行单步调试会比较绕，所以这里直接对汇编代码进行反向工程，获得对应的c代码如下</p>
+<p>整体代码并不长，但是里面有两处存在递归调用，如果使用 <code class="language-plaintext highlighter-rouge">gdb</code> 进行单步调试会比较绕，所以这里直接对汇编代码进行反向工程，获得对应的 c 代码如下</p>
 
 <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">func4</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">a2</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">int</span> <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">a2</span> <span class="o">-</span> <span class="n">a1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
@@ -387,32 +397,32 @@ window.onload = wrap_img;
 
 <p>最终符合条件的值是 <code class="language-plaintext highlighter-rouge">0,1,3,7</code>，输入这四个值中的任意一个作为第一个数字输入，均可成功拆除炸弹。</p>
 
-<h3 id="0x14-phase_5">
-<a class="anchor" href="#0x14-phase_5" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.4 phase_5</h3>
+<h4 id="0x15-phase_5">
+<a class="anchor" href="#0x15-phase_5" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.5 phase_5</h4>
 
 <p>进入到 <code class="language-plaintext highlighter-rouge">phase_5</code> 之后，注意到下面这一段汇编代码</p>
 
-<pre><code class="language-assembly">  401078:	31 c0                	xor    %eax,%eax
-  40107a:	e8 9c 02 00 00       	callq  40131b &lt;string_length&gt;
-  40107f:	83 f8 06             	cmp    $0x6,%eax
-  401082:	74 4e                	je     4010d2 &lt;phase_5+0x70&gt;
-  401084:	e8 b1 03 00 00       	callq  40143a &lt;explode_bomb&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401078</span><span class="p">:</span>	<span class="mi">31</span> <span class="nx">c0</span>                	<span class="nx">xor</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40107</span><span class="nx">a</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">9</span><span class="nx">c</span> <span class="mi">02</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40131</span><span class="nx">b</span> <span class="o">&lt;</span><span class="nx">string_length</span><span class="o">&gt;</span>
+  <span class="mi">40107</span><span class="nx">f</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">f8</span> <span class="mi">06</span>             	<span class="nx">cmp</span>    <span class="nx">$0x6</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401082</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">4</span><span class="nx">e</span>                	<span class="nx">je</span>     <span class="mi">4010</span><span class="nx">d2</span> <span class="o">&lt;</span><span class="nx">phase_5</span><span class="o">+</span><span class="mh">0x70</span><span class="o">&gt;</span>
+  <span class="mi">401084</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">b1</span> <span class="mi">03</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>其中 <code class="language-plaintext highlighter-rouge">xor %eax,%eax</code> 其实等价于将 <code class="language-plaintext highlighter-rouge">%eax</code> 置零，然后通过 <code class="language-plaintext highlighter-rouge">string_length</code> 来判断输入的字符串长度，后面通过 <code class="language-plaintext highlighter-rouge">cmp $0x6,%eax</code> 比较字符串长度和 <code class="language-plaintext highlighter-rouge">6</code> 的大小，如果不相等则会引发爆炸，如果相等，可以跳到地址为 <code class="language-plaintext highlighter-rouge">0x4010d2</code> 继续执行。</p>
 
 <p>继续往后执行，可以发现会进入到下面这一段循环代码中</p>
 
-<pre><code class="language-assembly">  40108b:	0f b6 0c 03          	movzbl (%rbx,%rax,1),%ecx
-  40108f:	88 0c 24             	mov    %cl,(%rsp)
-  401092:	48 8b 14 24          	mov    (%rsp),%rdx
-  401096:	83 e2 0f             	and    $0xf,%edx
-  401099:	0f b6 92 b0 24 40 00 	movzbl 0x4024b0(%rdx),%edx
-  4010a0:	88 54 04 10          	mov    %dl,0x10(%rsp,%rax,1)
-  4010a4:	48 83 c0 01          	add    $0x1,%rax
-  4010a8:	48 83 f8 06          	cmp    $0x6,%rax
-  4010ac:	75 dd                	jne    40108b &lt;phase_5+0x29&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">40108</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">0</span><span class="nx">f</span> <span class="nx">b6</span> <span class="mi">0</span><span class="nx">c</span> <span class="mi">03</span>          	<span class="nx">movzbl</span> <span class="p">(</span><span class="o">%</span><span class="nx">rbx</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">40108</span><span class="nx">f</span><span class="p">:</span>	<span class="mi">88</span> <span class="mi">0</span><span class="nx">c</span> <span class="mi">24</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">cl</span><span class="p">,(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">401092</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">14</span> <span class="mi">24</span>          	<span class="nx">mov</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rdx</span>
+  <span class="mi">401096</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">e2</span> <span class="mi">0</span><span class="nx">f</span>             	<span class="nx">and</span>    <span class="nx">$0xf</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">401099</span><span class="p">:</span>	<span class="mi">0</span><span class="nx">f</span> <span class="nx">b6</span> <span class="mi">92</span> <span class="nx">b0</span> <span class="mi">24</span> <span class="mi">40</span> <span class="mi">00</span> 	<span class="nx">movzbl</span> <span class="mh">0x4024b0</span><span class="p">(</span><span class="o">%</span><span class="nx">rdx</span><span class="p">),</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">4010</span><span class="nx">a0</span><span class="p">:</span>	<span class="mi">88</span> <span class="mi">54</span> <span class="mi">04</span> <span class="mi">10</span>          	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">dl</span><span class="p">,</span><span class="mh">0x10</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+  <span class="mi">4010</span><span class="nx">a4</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c0</span> <span class="mi">01</span>          	<span class="nx">add</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">4010</span><span class="nx">a8</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">f8</span> <span class="mi">06</span>          	<span class="nx">cmp</span>    <span class="nx">$0x6</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">4010</span><span class="nx">ac</span><span class="p">:</span>	<span class="mi">75</span> <span class="nx">dd</span>                	<span class="nx">jne</span>    <span class="mi">40108</span><span class="nx">b</span> <span class="o">&lt;</span><span class="nx">phase_5</span><span class="o">+</span><span class="mh">0x29</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>我们可以逐步分析每一行代码的含义，其中 <code class="language-plaintext highlighter-rouge">%rbx</code> 表示输入的字符串开头，在 <code class="language-plaintext highlighter-rouge">gdb</code>  中运行 <code class="language-plaintext highlighter-rouge">p %rax</code> 获得初始值是 <code class="language-plaintext highlighter-rouge">0</code>，那么这里相当于首先把输入字符串的第一个字符放到寄存器 <code class="language-plaintext highlighter-rouge">%ecx</code> 中；</p>
 
@@ -422,7 +432,7 @@ window.onload = wrap_img;
 
 <p>然后程序会以地址 <code class="language-plaintext highlighter-rouge">0x4024b0</code> 为起点，计算移动之后的地址所指向的内容，用寄存器 <code class="language-plaintext highlighter-rouge">%edx</code> 进行保存，可以通过在 <code class="language-plaintext highlighter-rouge">gdb</code> 中访问这个地址所对应的内存，得到下面的结果</p>
 
-<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="nx">s</span> <span class="mh">0x4024b0</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="nx">s</span> <span class="mh">0x4024b0</span>
 <span class="mh">0x4024b0</span> <span class="o">&lt;</span><span class="nx">array</span><span class="p">.</span><span class="mi">3449</span><span class="o">&gt;</span><span class="p">:</span>  <span class="dl">"</span><span class="s2">maduiersnfotvbylSo you think you can stop the bomb with ctrl-c, do you?</span><span class="dl">"</span>
 </code></pre></div></div>
 
@@ -432,20 +442,20 @@ window.onload = wrap_img;
 
 <p>在跳出循环好，代码会进入到这个地方</p>
 
-<pre><code class="language-assembly">  4010ae:	c6 44 24 16 00       	movb   $0x0,0x16(%rsp)
-  4010b3:	be 5e 24 40 00       	mov    $0x40245e,%esi
-  4010b8:	48 8d 7c 24 10       	lea    0x10(%rsp),%rdi
-  4010bd:	e8 76 02 00 00       	callq  401338 &lt;strings_not_equal&gt;
-  4010c2:	85 c0                	test   %eax,%eax
-  4010c4:	74 13                	je     4010d9 &lt;phase_5+0x77&gt;
-  4010c6:	e8 6f 03 00 00       	callq  40143a &lt;explode_bomb&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">4010</span><span class="nx">ae</span><span class="p">:</span>	<span class="nx">c6</span> <span class="mi">44</span> <span class="mi">24</span> <span class="mi">16</span> <span class="mi">00</span>       	<span class="nx">movb</span>   <span class="nx">$0x0</span><span class="p">,</span><span class="mh">0x16</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">)</span>
+  <span class="mi">4010</span><span class="nx">b3</span><span class="p">:</span>	<span class="nx">be</span> <span class="mi">5</span><span class="nx">e</span> <span class="mi">24</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x40245e</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">4010</span><span class="nx">b8</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">7</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">10</span>       	<span class="nx">lea</span>    <span class="mh">0x10</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rdi</span>
+  <span class="mi">4010</span><span class="nx">bd</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">76</span> <span class="mi">02</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">401338</span> <span class="o">&lt;</span><span class="nx">strings_not_equal</span><span class="o">&gt;</span>
+  <span class="mi">4010</span><span class="nx">c2</span><span class="p">:</span>	<span class="mi">85</span> <span class="nx">c0</span>                	<span class="nx">test</span>   <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">4010</span><span class="nx">c4</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">13</span>                	<span class="nx">je</span>     <span class="mi">4010</span><span class="nx">d9</span> <span class="o">&lt;</span><span class="nx">phase_5</span><span class="o">+</span><span class="mh">0x77</span><span class="o">&gt;</span>
+  <span class="mi">4010</span><span class="nx">c6</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">6</span><span class="nx">f</span> <span class="mi">03</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>首先获得地址为 <code class="language-plaintext highlighter-rouge">$0x40245e</code> 的字符串，用寄存器 <code class="language-plaintext highlighter-rouge">%esi</code> 保存它的起始地址，同时在 <code class="language-plaintext highlighter-rouge">%rdi</code> 中保存了刚才循环生成的字符串，接着调用 <code class="language-plaintext highlighter-rouge">strings_not_equal</code> ，通过名字可以知道它是在判断这两个字符串是否相等。</p>
 
 <p>通过 <code class="language-plaintext highlighter-rouge">gdb</code> 查看以地址 <code class="language-plaintext highlighter-rouge">$0x40245e</code> 为起点的字符串是</p>
 
-<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="nx">s</span> <span class="mh">0x40245e</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span> <span class="o">/</span><span class="nx">s</span> <span class="mh">0x40245e</span>
 <span class="mh">0x40245e</span><span class="p">:</span>       <span class="dl">"</span><span class="s2">flyers</span><span class="dl">"</span>
 </code></pre></div></div>
 
@@ -455,26 +465,26 @@ window.onload = wrap_img;
 
 <p>分析 <code class="language-plaintext highlighter-rouge">flyers</code> 分别在序列中最先出现的位置是 <code class="language-plaintext highlighter-rouge">9, 15, 14, 5, 6, 7</code>，如果我们都输入小写字母，那么起始点就是 <code class="language-plaintext highlighter-rouge">96</code>，因为在 <code class="language-plaintext highlighter-rouge">anscii</code> 编码中 <code class="language-plaintext highlighter-rouge">a=97</code>，比他小且最靠近它的 <code class="language-plaintext highlighter-rouge">16</code> 的倍数就是 <code class="language-plaintext highlighter-rouge">96</code>，所以上面的值分别加上 <code class="language-plaintext highlighter-rouge">96</code> 可以得到下面的结果 <code class="language-plaintext highlighter-rouge">105, 111, 110, 101, 102, 103</code>，再将其转换成字符可以获得最后输入的 <code class="language-plaintext highlighter-rouge">6</code> 个字符分别是 <code class="language-plaintext highlighter-rouge">ionefg</code>。</p>
 
-<h3 id="0x15-phase_6">
-<a class="anchor" href="#0x15-phase_6" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.5 phase_6</h3>
+<h4 id="0x16-phase_6">
+<a class="anchor" href="#0x16-phase_6" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.6 phase_6</h4>
 
-<p>第6阶段会比较复杂，主要考察了 <code class="language-plaintext highlighter-rouge">linked list</code> 这种数据结构，我们还是像之前一样，逐步分析。</p>
+<p>第 6 阶段会比较复杂，主要考察了 <code class="language-plaintext highlighter-rouge">linked list</code> 这种数据结构，我们还是像之前一样，逐步分析。</p>
 
 <p>首先进入的代码如下</p>
 
-<pre><code class="language-assembly">  401100:	49 89 e5             	mov    %rsp,%r13
-  401103:	48 89 e6             	mov    %rsp,%rsi
-  401106:	e8 51 03 00 00       	callq  40145c &lt;read_six_numbers&gt;
-  40110b:	49 89 e6             	mov    %rsp,%r14
-  40110e:	41 bc 00 00 00 00    	mov    $0x0,%r12d
-  401114:	4c 89 ed             	mov    %r13,%rbp
-  401117:	41 8b 45 00          	mov    0x0(%r13),%eax
-  40111b:	83 e8 01             	sub    $0x1,%eax
-  40111e:	83 f8 05             	cmp    $0x5,%eax
-  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt;
-  401123:	e8 12 03 00 00       	callq  40143a &lt;explode_bomb&gt;
-  401128:	41 83 c4 01          	add    $0x1,%r12d
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401100</span><span class="p">:</span>	<span class="mi">49</span> <span class="mi">89</span> <span class="nx">e5</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">r13</span>
+  <span class="mi">401103</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">e6</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">rsi</span>
+  <span class="mi">401106</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">51</span> <span class="mi">03</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40145</span><span class="nx">c</span> <span class="o">&lt;</span><span class="nx">read_six_numbers</span><span class="o">&gt;</span>
+  <span class="mi">40110</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">49</span> <span class="mi">89</span> <span class="nx">e6</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">r14</span>
+  <span class="mi">40110</span><span class="nx">e</span><span class="p">:</span>	<span class="mi">41</span> <span class="nx">bc</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>    	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">r12d</span>
+  <span class="mi">401114</span><span class="p">:</span>	<span class="mi">4</span><span class="nx">c</span> <span class="mi">89</span> <span class="nx">ed</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">r13</span><span class="p">,</span><span class="o">%</span><span class="nx">rbp</span>
+  <span class="mi">401117</span><span class="p">:</span>	<span class="mi">41</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">45</span> <span class="mi">00</span>          	<span class="nx">mov</span>    <span class="mh">0x0</span><span class="p">(</span><span class="o">%</span><span class="nx">r13</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40111</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">e8</span> <span class="mi">01</span>             	<span class="nx">sub</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40111</span><span class="nx">e</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">f8</span> <span class="mi">05</span>             	<span class="nx">cmp</span>    <span class="nx">$0x5</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401121</span><span class="p">:</span>	<span class="mi">76</span> <span class="mi">05</span>                	<span class="nx">jbe</span>    <span class="mi">401128</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x34</span><span class="o">&gt;</span>
+  <span class="mi">401123</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">12</span> <span class="mi">03</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+  <span class="mi">401128</span><span class="p">:</span>	<span class="mi">41</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">01</span>          	<span class="nx">add</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">r12d</span>
+</code></pre></div></div>
 
 <p>先通过 <code class="language-plaintext highlighter-rouge">read_six_numbers</code> 读取 <code class="language-plaintext highlighter-rouge">6</code> 个数字，而 <code class="language-plaintext highlighter-rouge">$rsp, $r13, $rsi</code> 这三个寄存器里面都存放了相同的地址，可以通过在 <code class="language-plaintext highlighter-rouge">gdb</code> 中使用 <code class="language-plaintext highlighter-rouge">x /6 $rsi</code> 验证这里存放的是输入的 <code class="language-plaintext highlighter-rouge">6</code> 个数字的起始地址。</p>
 
@@ -482,19 +492,19 @@ window.onload = wrap_img;
 
 <p>然后代码会进入到下面的地方</p>
 
-<pre><code class="language-assembly">  401128:	41 83 c4 01          	add    $0x1,%r12d
-  40112c:	41 83 fc 06          	cmp    $0x6,%r12d
-  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt;
-  401132:	44 89 e3             	mov    %r12d,%ebx
-  401135:	48 63 c3             	movslq %ebx,%rax
-  401138:	8b 04 84             	mov    (%rsp,%rax,4),%eax
-  40113b:	39 45 00             	cmp    %eax,0x0(%rbp)
-  40113e:	75 05                	jne    401145 &lt;phase_6+0x51&gt;
-  401140:	e8 f5 02 00 00       	callq  40143a &lt;explode_bomb&gt;
-  401145:	83 c3 01             	add    $0x1,%ebx
-  401148:	83 fb 05             	cmp    $0x5,%ebx
-  40114b:	7e e8                	jle    401135 &lt;phase_6+0x41&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401128</span><span class="p">:</span>	<span class="mi">41</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">01</span>          	<span class="nx">add</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">r12d</span>
+  <span class="mi">40112</span><span class="nx">c</span><span class="p">:</span>	<span class="mi">41</span> <span class="mi">83</span> <span class="nx">fc</span> <span class="mi">06</span>          	<span class="nx">cmp</span>    <span class="nx">$0x6</span><span class="p">,</span><span class="o">%</span><span class="nx">r12d</span>
+  <span class="mi">401130</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">21</span>                	<span class="nx">je</span>     <span class="mi">401153</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x5f</span><span class="o">&gt;</span>
+  <span class="mi">401132</span><span class="p">:</span>	<span class="mi">44</span> <span class="mi">89</span> <span class="nx">e3</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">r12d</span><span class="p">,</span><span class="o">%</span><span class="nx">ebx</span>
+  <span class="mi">401135</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">63</span> <span class="nx">c3</span>             	<span class="nx">movslq</span> <span class="o">%</span><span class="nx">ebx</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">401138</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">b</span> <span class="mi">04</span> <span class="mi">84</span>             	<span class="nx">mov</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40113</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">39</span> <span class="mi">45</span> <span class="mi">00</span>             	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="mh">0x0</span><span class="p">(</span><span class="o">%</span><span class="nx">rbp</span><span class="p">)</span>
+  <span class="mi">40113</span><span class="nx">e</span><span class="p">:</span>	<span class="mi">75</span> <span class="mi">05</span>                	<span class="nx">jne</span>    <span class="mi">401145</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x51</span><span class="o">&gt;</span>
+  <span class="mi">401140</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">f5</span> <span class="mi">02</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+  <span class="mi">401145</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">c3</span> <span class="mi">01</span>             	<span class="nx">add</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">ebx</span>
+  <span class="mi">401148</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">fb</span> <span class="mi">05</span>             	<span class="nx">cmp</span>    <span class="nx">$0x5</span><span class="p">,</span><span class="o">%</span><span class="nx">ebx</span>
+  <span class="mi">40114</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">7</span><span class="nx">e</span> <span class="nx">e8</span>                	<span class="nx">jle</span>    <span class="mi">401135</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x41</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>注意到前面的代码中将 <code class="language-plaintext highlighter-rouge">$r12d</code> 置为 <code class="language-plaintext highlighter-rouge">0</code>，然后这里会 <code class="language-plaintext highlighter-rouge">+1</code> 和 <code class="language-plaintext highlighter-rouge">6</code> 进行比较，如果相等则会直接跳到地址 <code class="language-plaintext highlighter-rouge">0x401153</code>，说明这是在遍历输入的 <code class="language-plaintext highlighter-rouge">6</code> 个数。</p>
 
@@ -502,19 +512,19 @@ window.onload = wrap_img;
 
 <p>跳出这个循环之后，会进入到下面这段代码</p>
 
-<pre><code class="language-assembly">  401114:	4c 89 ed             	mov    %r13,%rbp
-  401117:	41 8b 45 00          	mov    0x0(%r13),%eax
-  40111b:	83 e8 01             	sub    $0x1,%eax
-  40111e:	83 f8 05             	cmp    $0x5,%eax
-  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt;
-  401123:	e8 12 03 00 00       	callq  40143a &lt;explode_bomb&gt;
-  401128:	41 83 c4 01          	add    $0x1,%r12d
-  40112c:	41 83 fc 06          	cmp    $0x6,%r12d
-  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt;
-  ...
-  40114d:	49 83 c5 04          	add    $0x4,%r13
-  401151:	eb c1                	jmp    401114 &lt;phase_6+0x20&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401114</span><span class="p">:</span>	<span class="mi">4</span><span class="nx">c</span> <span class="mi">89</span> <span class="nx">ed</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">r13</span><span class="p">,</span><span class="o">%</span><span class="nx">rbp</span>
+  <span class="mi">401117</span><span class="p">:</span>	<span class="mi">41</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">45</span> <span class="mi">00</span>          	<span class="nx">mov</span>    <span class="mh">0x0</span><span class="p">(</span><span class="o">%</span><span class="nx">r13</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40111</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">e8</span> <span class="mi">01</span>             	<span class="nx">sub</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40111</span><span class="nx">e</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">f8</span> <span class="mi">05</span>             	<span class="nx">cmp</span>    <span class="nx">$0x5</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401121</span><span class="p">:</span>	<span class="mi">76</span> <span class="mi">05</span>                	<span class="nx">jbe</span>    <span class="mi">401128</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x34</span><span class="o">&gt;</span>
+  <span class="mi">401123</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">12</span> <span class="mi">03</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+  <span class="mi">401128</span><span class="p">:</span>	<span class="mi">41</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">01</span>          	<span class="nx">add</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">r12d</span>
+  <span class="mi">40112</span><span class="nx">c</span><span class="p">:</span>	<span class="mi">41</span> <span class="mi">83</span> <span class="nx">fc</span> <span class="mi">06</span>          	<span class="nx">cmp</span>    <span class="nx">$0x6</span><span class="p">,</span><span class="o">%</span><span class="nx">r12d</span>
+  <span class="mi">401130</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">21</span>                	<span class="nx">je</span>     <span class="mi">401153</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x5f</span><span class="o">&gt;</span>
+  <span class="p">...</span>
+  <span class="mi">40114</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">49</span> <span class="mi">83</span> <span class="nx">c5</span> <span class="mi">04</span>          	<span class="nx">add</span>    <span class="nx">$0x4</span><span class="p">,</span><span class="o">%</span><span class="nx">r13</span>
+  <span class="mi">401151</span><span class="p">:</span>	<span class="nx">eb</span> <span class="nx">c1</span>                	<span class="nx">jmp</span>    <span class="mi">401114</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x20</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>首先会对 <code class="language-plaintext highlighter-rouge">$r13</code> 增加 <code class="language-plaintext highlighter-rouge">4</code>个字节，因为输入的是 <code class="language-plaintext highlighter-rouge">int</code>，所以这里等价于让 <code class="language-plaintext highlighter-rouge">$r13</code> 指向第二个输入的数字，然后跳转到地址 <code class="language-plaintext highlighter-rouge">0x401114</code>。</p>
 
@@ -524,16 +534,16 @@ window.onload = wrap_img;
 
 <p>然后代码会进行到下面这里</p>
 
-<pre><code class="language-assembly">  401153:	48 8d 74 24 18       	lea    0x18(%rsp),%rsi
-  401158:	4c 89 f0             	mov    %r14,%rax
-  40115b:	b9 07 00 00 00       	mov    $0x7,%ecx
-  401160:	89 ca                	mov    %ecx,%edx
-  401162:	2b 10                	sub    (%rax),%edx
-  401164:	89 10                	mov    %edx,(%rax)
-  401166:	48 83 c0 04          	add    $0x4,%rax
-  40116a:	48 39 f0             	cmp    %rsi,%rax
-  40116d:	75 f1                	jne    401160 &lt;phase_6+0x6c&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401153</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">74</span> <span class="mi">24</span> <span class="mi">18</span>       	<span class="nx">lea</span>    <span class="mh">0x18</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rsi</span>
+  <span class="mi">401158</span><span class="p">:</span>	<span class="mi">4</span><span class="nx">c</span> <span class="mi">89</span> <span class="nx">f0</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">r14</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">40115</span><span class="nx">b</span><span class="p">:</span>	<span class="nx">b9</span> <span class="mi">07</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x7</span><span class="p">,</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">401160</span><span class="p">:</span>	<span class="mi">89</span> <span class="nx">ca</span>                	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">ecx</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">401162</span><span class="p">:</span>	<span class="mi">2</span><span class="nx">b</span> <span class="mi">10</span>                	<span class="nx">sub</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rax</span><span class="p">),</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">401164</span><span class="p">:</span>	<span class="mi">89</span> <span class="mi">10</span>                	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">edx</span><span class="p">,(</span><span class="o">%</span><span class="nx">rax</span><span class="p">)</span>
+  <span class="mi">401166</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c0</span> <span class="mi">04</span>          	<span class="nx">add</span>    <span class="nx">$0x4</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">40116</span><span class="nx">a</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">39</span> <span class="nx">f0</span>             	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">40116</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">75</span> <span class="nx">f1</span>                	<span class="nx">jne</span>    <span class="mi">401160</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x6c</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>注意到 <code class="language-plaintext highlighter-rouge">0x18</code> 在十进制下是 <code class="language-plaintext highlighter-rouge">24</code>，<code class="language-plaintext highlighter-rouge">$rsi</code> 地址在 <code class="language-plaintext highlighter-rouge">$rsp</code> 之后的 <code class="language-plaintext highlighter-rouge">24</code>个字节，刚好差了 <code class="language-plaintext highlighter-rouge">6</code> 个类型是 <code class="language-plaintext highlighter-rouge">int</code> 的输入。</p>
 
@@ -547,13 +557,13 @@ window.onload = wrap_img;
 
 <p>继续运行，会进入到下面的代码</p>
 
-<pre><code class="language-assembly">  401197:	8b 0c 34             	mov    (%rsp,%rsi,1),%ecx
-  40119a:	83 f9 01             	cmp    $0x1,%ecx
-  40119d:	7e e4                	jle    401183 &lt;phase_6+0x8f&gt;
-  40119f:	b8 01 00 00 00       	mov    $0x1,%eax
-  4011a4:	ba d0 32 60 00       	mov    $0x6032d0,%edx
-  4011a9:	eb cb                	jmp    401176 &lt;phase_6+0x82&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401197</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">b</span> <span class="mi">0</span><span class="nx">c</span> <span class="mi">34</span>             	<span class="nx">mov</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">40119</span><span class="nx">a</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">f9</span> <span class="mi">01</span>             	<span class="nx">cmp</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">ecx</span>
+  <span class="mi">40119</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">7</span><span class="nx">e</span> <span class="nx">e4</span>                	<span class="nx">jle</span>    <span class="mi">401183</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x8f</span><span class="o">&gt;</span>
+  <span class="mi">40119</span><span class="nx">f</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">4011</span><span class="nx">a4</span><span class="p">:</span>	<span class="nx">ba</span> <span class="nx">d0</span> <span class="mi">32</span> <span class="mi">60</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x6032d0</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">4011</span><span class="nx">a9</span><span class="p">:</span>	<span class="nx">eb</span> <span class="nx">cb</span>                	<span class="nx">jmp</span>    <span class="mi">401176</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x82</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p><code class="language-plaintext highlighter-rouge">$rsi</code> 初始为 <code class="language-plaintext highlighter-rouge">0</code>，<code class="language-plaintext highlighter-rouge">mov (%rsp,%rsi,1),%ecx</code> 将第一个数字放到 <code class="language-plaintext highlighter-rouge">$ecx</code> 中，然后和 <code class="language-plaintext highlighter-rouge">1</code> 进行比较，如果 <code class="language-plaintext highlighter-rouge">&lt;=1</code>，进入地址 <code class="language-plaintext highlighter-rouge">0x401183</code> 这个位置，否则往后执行，会进入 <code class="language-plaintext highlighter-rouge">0x401176</code> 这个地址。</p>
 
@@ -561,20 +571,20 @@ window.onload = wrap_img;
 
 <p>继续运行到地址是 <code class="language-plaintext highlighter-rouge">0x401176</code> 的代码如下</p>
 
-<pre><code class="language-assembly">  401176:	48 8b 52 08          	mov    0x8(%rdx),%rdx
-  40117a:	83 c0 01             	add    $0x1,%eax
-  40117d:	39 c8                	cmp    %ecx,%eax
-  40117f:	75 f5                	jne    401176 &lt;phase_6+0x82&gt;
-  401181:	eb 05                	jmp    401188 &lt;phase_6+0x94&gt;
-  401183:	ba d0 32 60 00       	mov    $0x6032d0,%edx
-  401188:	48 89 54 74 20       	mov    %rdx,0x20(%rsp,%rsi,2)
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401176</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">52</span> <span class="mi">08</span>          	<span class="nx">mov</span>    <span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rdx</span><span class="p">),</span><span class="o">%</span><span class="nx">rdx</span>
+  <span class="mi">40117</span><span class="nx">a</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">c0</span> <span class="mi">01</span>             	<span class="nx">add</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40117</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">39</span> <span class="nx">c8</span>                	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">ecx</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40117</span><span class="nx">f</span><span class="p">:</span>	<span class="mi">75</span> <span class="nx">f5</span>                	<span class="nx">jne</span>    <span class="mi">401176</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x82</span><span class="o">&gt;</span>
+  <span class="mi">401181</span><span class="p">:</span>	<span class="nx">eb</span> <span class="mi">05</span>                	<span class="nx">jmp</span>    <span class="mi">401188</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0x94</span><span class="o">&gt;</span>
+  <span class="mi">401183</span><span class="p">:</span>	<span class="nx">ba</span> <span class="nx">d0</span> <span class="mi">32</span> <span class="mi">60</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x6032d0</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">401188</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="mi">54</span> <span class="mi">74</span> <span class="mi">20</span>       	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rdx</span><span class="p">,</span><span class="mh">0x20</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div></div>
 
 <p><code class="language-plaintext highlighter-rouge">$rdx</code> 表示 <code class="language-plaintext highlighter-rouge">node1</code>，开始先对地址 <code class="language-plaintext highlighter-rouge">+8</code>，然后 <code class="language-plaintext highlighter-rouge">$eax+1</code> 和 <code class="language-plaintext highlighter-rouge">$ecx</code> 比较大小，如果小于 <code class="language-plaintext highlighter-rouge">$ecx</code> 则继续对 <code class="language-plaintext highlighter-rouge">node1</code> 地址 <code class="language-plaintext highlighter-rouge">+8</code>，而<code class="language-plaintext highlighter-rouge">$ecx==6</code> 表示输入的 <code class="language-plaintext highlighter-rouge">6</code> 个数字，先从第一个数字开始取。</p>
 
 <p>通过 <code class="language-plaintext highlighter-rouge">x/24 $rdx</code> 可以看到下面的结果</p>
 
-<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mh">0x6032d0</span> <span class="o">&lt;</span><span class="nx">node1</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x0000014c</span>      <span class="mh">0x00000001</span>      <span class="mh">0x006032e0</span>      <span class="mh">0x00000000</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mh">0x6032d0</span> <span class="o">&lt;</span><span class="nx">node1</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x0000014c</span>      <span class="mh">0x00000001</span>      <span class="mh">0x006032e0</span>      <span class="mh">0x00000000</span>
 <span class="mh">0x6032e0</span> <span class="o">&lt;</span><span class="nx">node2</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x000000a8</span>      <span class="mh">0x00000002</span>      <span class="mh">0x006032f0</span>      <span class="mh">0x00000000</span>
 <span class="mh">0x6032f0</span> <span class="o">&lt;</span><span class="nx">node3</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x0000039c</span>      <span class="mh">0x00000003</span>      <span class="mh">0x00603300</span>      <span class="mh">0x00000000</span>
 <span class="mh">0x603300</span> <span class="o">&lt;</span><span class="nx">node4</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x000002b3</span>      <span class="mh">0x00000004</span>      <span class="mh">0x00603310</span>      <span class="mh">0x00000000</span>
@@ -588,37 +598,131 @@ window.onload = wrap_img;
 
 <p>接着会进行下面这段代码</p>
 
-<pre><code class="language-assembly">  4011ab:	48 8b 5c 24 20       	mov    0x20(%rsp),%rbx
-  4011b0:	48 8d 44 24 28       	lea    0x28(%rsp),%rax
-  4011b5:	48 8d 74 24 50       	lea    0x50(%rsp),%rsi
-  4011ba:	48 89 d9             	mov    %rbx,%rcx
-  4011bd:	48 8b 10             	mov    (%rax),%rdx
-  4011c0:	48 89 51 08          	mov    %rdx,0x8(%rcx)
-  4011c4:	48 83 c0 08          	add    $0x8,%rax
-  4011c8:	48 39 f0             	cmp    %rsi,%rax
-  4011cb:	74 05                	je     4011d2 &lt;phase_6+0xde&gt;
-  4011cd:	48 89 d1             	mov    %rdx,%rcx
-  4011d0:	eb eb                	jmp    4011bd &lt;phase_6+0xc9&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">4011</span><span class="nx">ab</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">5</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">20</span>       	<span class="nx">mov</span>    <span class="mh">0x20</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rbx</span>
+  <span class="mi">4011</span><span class="nx">b0</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">44</span> <span class="mi">24</span> <span class="mi">28</span>       	<span class="nx">lea</span>    <span class="mh">0x28</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">4011</span><span class="nx">b5</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">74</span> <span class="mi">24</span> <span class="mi">50</span>       	<span class="nx">lea</span>    <span class="mh">0x50</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rsi</span>
+  <span class="mi">4011</span><span class="nx">ba</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">d9</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rbx</span><span class="p">,</span><span class="o">%</span><span class="nx">rcx</span>
+  <span class="mi">4011</span><span class="nx">bd</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">10</span>             	<span class="nx">mov</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rax</span><span class="p">),</span><span class="o">%</span><span class="nx">rdx</span>
+  <span class="mi">4011</span><span class="nx">c0</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="mi">51</span> <span class="mi">08</span>          	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rdx</span><span class="p">,</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rcx</span><span class="p">)</span>
+  <span class="mi">4011</span><span class="nx">c4</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c0</span> <span class="mi">08</span>          	<span class="nx">add</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">4011</span><span class="nx">c8</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">39</span> <span class="nx">f0</span>             	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">4011</span><span class="nx">cb</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">05</span>                	<span class="nx">je</span>     <span class="mi">4011</span><span class="nx">d2</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0xde</span><span class="o">&gt;</span>
+  <span class="mi">4011</span><span class="nx">cd</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">d1</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rdx</span><span class="p">,</span><span class="o">%</span><span class="nx">rcx</span>
+  <span class="mi">4011</span><span class="nx">d0</span><span class="p">:</span>	<span class="nx">eb</span> <span class="nx">eb</span>                	<span class="nx">jmp</span>    <span class="mi">4011</span><span class="nx">bd</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0xc9</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>这段代码是修改每个 <code class="language-plaintext highlighter-rouge">node</code> 指向的内容，重新建立新的 <code class="language-plaintext highlighter-rouge">linked list</code>，让取到的前一个 <code class="language-plaintext highlighter-rouge">node</code> 指向取到的下一个 <code class="language-plaintext highlighter-rouge">node</code> 的地址，可以通过 <code class="language-plaintext highlighter-rouge">mov  %rdx,0x8(%rcx)</code> 看出来，同时 <code class="language-plaintext highlighter-rouge">add $0x8,%rax</code> 即为不断的向后遍历 <code class="language-plaintext highlighter-rouge">linked list</code>。</p>
 
 <p>最后会运行到下面这段代码</p>
 
-<pre><code class="language-assembly">  4011d2:	48 c7 42 08 00 00 00 	movq   $0x0,0x8(%rdx)
-  4011d9:	00 
-  4011da:	bd 05 00 00 00       	mov    $0x5,%ebp
-  4011df:	48 8b 43 08          	mov    0x8(%rbx),%rax
-  4011e3:	8b 00                	mov    (%rax),%eax
-  4011e5:	39 03                	cmp    %eax,(%rbx)
-  4011e7:	7d 05                	jge    4011ee &lt;phase_6+0xfa&gt;
-  4011e9:	e8 4c 02 00 00       	callq  40143a &lt;explode_bomb&gt;
-</code></pre>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">4011</span><span class="nx">d2</span><span class="p">:</span>	<span class="mi">48</span> <span class="nx">c7</span> <span class="mi">42</span> <span class="mi">08</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 	<span class="nx">movq</span>   <span class="nx">$0x0</span><span class="p">,</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rdx</span><span class="p">)</span>
+  <span class="mi">4011</span><span class="nx">d9</span><span class="p">:</span>	<span class="mi">00</span> 
+  <span class="mi">4011</span><span class="nx">da</span><span class="p">:</span>	<span class="nx">bd</span> <span class="mi">05</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x5</span><span class="p">,</span><span class="o">%</span><span class="nx">ebp</span>
+  <span class="mi">4011</span><span class="nx">df</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">43</span> <span class="mi">08</span>          	<span class="nx">mov</span>    <span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rbx</span><span class="p">),</span><span class="o">%</span><span class="nx">rax</span>
+  <span class="mi">4011</span><span class="nx">e3</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">b</span> <span class="mi">00</span>                	<span class="nx">mov</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rax</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">4011</span><span class="nx">e5</span><span class="p">:</span>	<span class="mi">39</span> <span class="mi">03</span>                	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,(</span><span class="o">%</span><span class="nx">rbx</span><span class="p">)</span>
+  <span class="mi">4011</span><span class="nx">e7</span><span class="p">:</span>	<span class="mi">7</span><span class="nx">d</span> <span class="mi">05</span>                	<span class="nx">jge</span>    <span class="mi">4011</span><span class="nx">ee</span> <span class="o">&lt;</span><span class="nx">phase_6</span><span class="o">+</span><span class="mh">0xfa</span><span class="o">&gt;</span>
+  <span class="mi">4011</span><span class="nx">e9</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">4</span><span class="nx">c</span> <span class="mi">02</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
 
 <p>这段代码最后决定了是否会引爆炸弹，<code class="language-plaintext highlighter-rouge">$rbx</code> 是第一次取到的 <code class="language-plaintext highlighter-rouge">node</code>，<code class="language-plaintext highlighter-rouge">0x8(%rbx)</code> 是第二次取到的 <code class="language-plaintext highlighter-rouge">node</code>，这里的比较需要前一次取到的 <code class="language-plaintext highlighter-rouge">nodel</code> 里面的值比第二次取到的 <code class="language-plaintext highlighter-rouge">node</code> 中的值大，否则炸弹爆炸。</p>
 
 <p>看到这里，要求已经很清楚了，我们需要输入 <code class="language-plaintext highlighter-rouge">6</code> 个数字，每个数字 <code class="language-plaintext highlighter-rouge">7-</code> 之后表示取 <code class="language-plaintext highlighter-rouge">linked list</code> 中的第几个 <code class="language-plaintext highlighter-rouge">node</code>，依次取出来值之后，需要降序排列，所以通过比较上面 <code class="language-plaintext highlighter-rouge">linked list</code> 不同 <code class="language-plaintext highlighter-rouge">node</code> 的值，最终需要输入的结果为 <code class="language-plaintext highlighter-rouge">4 3 2 1 6 5</code>。</p>
 
+<h4 id="0x17-secret_phase">
+<a class="anchor" href="#0x17-secret_phase" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.7 secret_phase</h4>
+
+<p>除了标准的阶段外，代码中还藏了一个秘密阶段，通过 <code class="language-plaintext highlighter-rouge">bomb.c</code> 的注释可以发现这个秘密，在汇编代码中也可以搜索到这个阶段，不过想要进入这个阶段并不容易，下面我们来讲一下 secret_phase.</p>
+
+<p>在汇编代码中搜索 <code class="language-plaintext highlighter-rouge">secret_phase</code> 会找到如何函数在 <code class="language-plaintext highlighter-rouge">phase_defused</code> 中，接着看看这一段代码</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">4015</span><span class="nx">f0</span><span class="p">:</span>	<span class="nx">be</span> <span class="mi">19</span> <span class="mi">26</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x402619</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">4015</span><span class="nx">f5</span><span class="p">:</span>	<span class="nx">bf</span> <span class="mi">70</span> <span class="mi">38</span> <span class="mi">60</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x603870</span><span class="p">,</span><span class="o">%</span><span class="nx">edi</span>
+  <span class="mi">4015</span><span class="nx">fa</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">f1</span> <span class="nx">f5</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">bf0</span> <span class="o">&lt;</span><span class="nx">__isoc99_sscanf</span><span class="p">@</span><span class="nd">plt</span><span class="o">&gt;</span>
+  <span class="mi">4015</span><span class="nx">ff</span><span class="p">:</span>	<span class="mi">83</span> <span class="nx">f8</span> <span class="mi">03</span>             	<span class="nx">cmp</span>    <span class="nx">$0x3</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401602</span><span class="p">:</span>	<span class="mi">75</span> <span class="mi">31</span>                	<span class="nx">jne</span>    <span class="mi">401635</span> <span class="o">&lt;</span><span class="nx">phase_defused</span><span class="o">+</span><span class="mh">0x71</span><span class="o">&gt;</span>
+</code></pre></div></div>
+
+<p>这段代码开始调用了 <code class="language-plaintext highlighter-rouge">sscanf</code> ，它的两个参数分别为 <code class="language-plaintext highlighter-rouge">$esi</code> 和 <code class="language-plaintext highlighter-rouge">$edi</code>，可以通过 <code class="language-plaintext highlighter-rouge">x/s 0x402619, x/s 0x603870</code> 查看他们的具体数值分别是 <code class="language-plaintext highlighter-rouge">%d %d %s</code> 和 <code class="language-plaintext highlighter-rouge">&lt;input_strings+240&gt;: "1 0"</code>，且 <code class="language-plaintext highlighter-rouge">$eax</code> 作为 <code class="language-plaintext highlighter-rouge">sscanf</code> 的返回值，结果为 <code class="language-plaintext highlighter-rouge">2</code>，接着要和 <code class="language-plaintext highlighter-rouge">3</code> 进行比较，如果不相等的话，则会跳到最后退出，这时就无法进入 <code class="language-plaintext highlighter-rouge">secret_phase</code>。</p>
+
+<p>查阅一下 <code class="language-plaintext highlighter-rouge">sscanf</code> 函数，发现它会从一个字符串的开始位置检索特定的格式，这里检索的字符串为 <code class="language-plaintext highlighter-rouge">"1 0"</code>，格式是 <code class="language-plaintext highlighter-rouge">%d %d %s</code>，发现这里检索的字符串缺少最后一部分字符串输入，只有前两个数字的输入。</p>
+
+<p>另外可以发现 <code class="language-plaintext highlighter-rouge">"1 0"</code> 是第 <code class="language-plaintext highlighter-rouge">4</code> 个输入，从这里知道应该再对输入一个字符串，不过具体输入什么内容还要继续往后看。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401604</span><span class="p">:</span>	<span class="nx">be</span> <span class="mi">22</span> <span class="mi">26</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x402622</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">401609</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">7</span><span class="nx">c</span> <span class="mi">24</span> <span class="mi">10</span>       	<span class="nx">lea</span>    <span class="mh">0x10</span><span class="p">(</span><span class="o">%</span><span class="nx">rsp</span><span class="p">),</span><span class="o">%</span><span class="nx">rdi</span>
+  <span class="mi">40160</span><span class="nx">e</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">25</span> <span class="nx">fd</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">401338</span> <span class="o">&lt;</span><span class="nx">strings_not_equal</span><span class="o">&gt;</span>
+  <span class="mi">401613</span><span class="p">:</span>	<span class="mi">85</span> <span class="nx">c0</span>                	<span class="nx">test</span>   <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401615</span><span class="p">:</span>	<span class="mi">75</span> <span class="mi">1</span><span class="nx">e</span>                	<span class="nx">jne</span>    <span class="mi">401635</span> <span class="o">&lt;</span><span class="nx">phase_defused</span><span class="o">+</span><span class="mh">0x71</span><span class="o">&gt;</span>
+</code></pre></div></div>
+
+<p>发现这里调用了 <code class="language-plaintext highlighter-rouge">strings_not_equal</code> 这个函数对输入字符串进行判断，通过 <code class="language-plaintext highlighter-rouge">x /s 0x402622</code> 发现结果为 <code class="language-plaintext highlighter-rouge">DrEvil</code>，所以我们在第 <code class="language-plaintext highlighter-rouge">4</code> 个输入的地方加上这个字符串即可进入到 <code class="language-plaintext highlighter-rouge">secret_phase</code>.</p>
+
+<p>进入 <code class="language-plaintext highlighter-rouge">secret_phase</code> 后需要输入一个数字，先观察下面这段代码</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="mi">401255</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">76</span> <span class="nx">f9</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">bd0</span> <span class="o">&lt;</span><span class="nx">strtol</span><span class="p">@</span><span class="nd">plt</span><span class="o">&gt;</span>
+  <span class="mi">40125</span><span class="nx">a</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">c3</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="o">%</span><span class="nx">rbx</span>
+  <span class="mi">40125</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">d</span> <span class="mi">40</span> <span class="nx">ff</span>             	<span class="nx">lea</span>    <span class="o">-</span><span class="mh">0x1</span><span class="p">(</span><span class="o">%</span><span class="nx">rax</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401260</span><span class="p">:</span>	<span class="mi">3</span><span class="nx">d</span> <span class="nx">e8</span> <span class="mi">03</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">cmp</span>    <span class="nx">$0x3e8</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401265</span><span class="p">:</span>	<span class="mi">76</span> <span class="mi">05</span>                	<span class="nx">jbe</span>    <span class="mi">40126</span><span class="nx">c</span> <span class="o">&lt;</span><span class="nx">secret_phase</span><span class="o">+</span><span class="mh">0x2a</span><span class="o">&gt;</span>
+  <span class="mi">401267</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">ce</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">40143</span><span class="nx">a</span> <span class="o">&lt;</span><span class="nx">explode_bomb</span><span class="o">&gt;</span>
+</code></pre></div></div>
+
+<p>这里调用了 <code class="language-plaintext highlighter-rouge">strtol</code> 这个函数，对输入的字符串进行长整数的转换并返回结果，接着通过 <code class="language-plaintext highlighter-rouge">lea -0x1(%rax),%eax</code> 执行一个 <code class="language-plaintext highlighter-rouge">-1</code> 操作，然后和 <code class="language-plaintext highlighter-rouge">0x3e8</code> 进行比较，这里转换成十进制就是 <code class="language-plaintext highlighter-rouge">1000</code>，所以要求输入的数字要 <code class="language-plaintext highlighter-rouge">&lt;=1001</code>.</p>
+
+<p>接着发现在 <code class="language-plaintext highlighter-rouge">secret_phase</code> 中调用了 <code class="language-plaintext highlighter-rouge">fun7</code>，只需要函数返回值等于 <code class="language-plaintext highlighter-rouge">2</code> 即可解除炸弹，先找到 <code class="language-plaintext highlighter-rouge">func7</code> 对应的代码。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0000000000401204</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">401204</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">ec</span> <span class="mi">08</span>          	<span class="nx">sub</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">401208</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">85</span> <span class="nx">ff</span>             	<span class="nx">test</span>   <span class="o">%</span><span class="nx">rdi</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
+  <span class="mi">40120</span><span class="nx">b</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">2</span><span class="nx">b</span>                	<span class="nx">je</span>     <span class="mi">401238</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">+</span><span class="mh">0x34</span><span class="o">&gt;</span>
+  <span class="mi">40120</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">b</span> <span class="mi">17</span>                	<span class="nx">mov</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rdi</span><span class="p">),</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">40120</span><span class="nx">f</span><span class="p">:</span>	<span class="mi">39</span> <span class="nx">f2</span>                	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">esi</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">401211</span><span class="p">:</span>	<span class="mi">7</span><span class="nx">e</span> <span class="mi">0</span><span class="nx">d</span>                	<span class="nx">jle</span>    <span class="mi">401220</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">+</span><span class="mh">0x1c</span><span class="o">&gt;</span>
+  <span class="mi">401213</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">7</span><span class="nx">f</span> <span class="mi">08</span>          	<span class="nx">mov</span>    <span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="nx">rdi</span><span class="p">),</span><span class="o">%</span><span class="nx">rdi</span>
+  <span class="mi">401217</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">e8</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">401204</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">&gt;</span>
+  <span class="mi">40121</span><span class="nx">c</span><span class="p">:</span>	<span class="mi">01</span> <span class="nx">c0</span>                	<span class="nx">add</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40121</span><span class="nx">e</span><span class="p">:</span>	<span class="nx">eb</span> <span class="mi">1</span><span class="nx">d</span>                	<span class="nx">jmp</span>    <span class="mi">40123</span><span class="nx">d</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">+</span><span class="mh">0x39</span><span class="o">&gt;</span>
+  <span class="mi">401220</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401225</span><span class="p">:</span>	<span class="mi">39</span> <span class="nx">f2</span>                	<span class="nx">cmp</span>    <span class="o">%</span><span class="nx">esi</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">401227</span><span class="p">:</span>	<span class="mi">74</span> <span class="mi">14</span>                	<span class="nx">je</span>     <span class="mi">40123</span><span class="nx">d</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">+</span><span class="mh">0x39</span><span class="o">&gt;</span>
+  <span class="mi">401229</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">8</span><span class="nx">b</span> <span class="mi">7</span><span class="nx">f</span> <span class="mi">10</span>          	<span class="nx">mov</span>    <span class="mh">0x10</span><span class="p">(</span><span class="o">%</span><span class="nx">rdi</span><span class="p">),</span><span class="o">%</span><span class="nx">rdi</span>
+  <span class="mi">40122</span><span class="nx">d</span><span class="p">:</span>	<span class="nx">e8</span> <span class="nx">d2</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">401204</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">&gt;</span>
+  <span class="mi">401232</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">d</span> <span class="mi">44</span> <span class="mi">00</span> <span class="mi">01</span>          	<span class="nx">lea</span>    <span class="mh">0x1</span><span class="p">(</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="o">%</span><span class="nx">rax</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401236</span><span class="p">:</span>	<span class="nx">eb</span> <span class="mi">05</span>                	<span class="nx">jmp</span>    <span class="mi">40123</span><span class="nx">d</span> <span class="o">&lt;</span><span class="nx">fun7</span><span class="o">+</span><span class="mh">0x39</span><span class="o">&gt;</span>
+  <span class="mi">401238</span><span class="p">:</span>	<span class="nx">b8</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">mov</span>    <span class="nx">$0xffffffff</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">40123</span><span class="nx">d</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">08</span>          	<span class="nx">add</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">401241</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+</code></pre></div></div>
+<p>发现这是一个递归函数，其中返回的地方有 <code class="language-plaintext highlighter-rouge">3</code> 个，分别是 <code class="language-plaintext highlighter-rouge">add  %eax,%eax</code>, <code class="language-plaintext highlighter-rouge">mov  $0x0,%eax</code> 和 <code class="language-plaintext highlighter-rouge">lea  0x1(%rax,%rax,1),%eax</code>，所以递归调用 <code class="language-plaintext highlighter-rouge">fun7</code>，第一次返回 <code class="language-plaintext highlighter-rouge">1</code>，第二次 <code class="language-plaintext highlighter-rouge">2*$eax</code> 即可满足条件。</p>
+
+<p>下面分析一下函数递归调用前的行为，发现有这两个地方 <code class="language-plaintext highlighter-rouge">mov 0x8(%rdi),%rdi</code> 和 <code class="language-plaintext highlighter-rouge">mov  0x10(%rdi),%rdi</code>，通过 <code class="language-plaintext highlighter-rouge">gdb</code> 去查看 <code class="language-plaintext highlighter-rouge">$rdi</code> 地址所指向的内容 <code class="language-plaintext highlighter-rouge">x/24 $rdi</code>，会发现这是一个二叉树，第一个是节点的值，后面分别是左子树和右子树的地址。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mh">0x6030f0</span> <span class="o">&lt;</span><span class="nx">n1</span><span class="o">&gt;</span><span class="p">:</span>  <span class="mh">0x00000024</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00603110</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603100</span> <span class="o">&lt;</span><span class="nx">n1</span><span class="o">+</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">:</span>       <span class="mh">0x00603130</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603110</span> <span class="o">&lt;</span><span class="nx">n21</span><span class="o">&gt;</span><span class="p">:</span> <span class="mh">0x00000008</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00603190</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603120</span> <span class="o">&lt;</span><span class="nx">n21</span><span class="o">+</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">:</span>      <span class="mh">0x00603150</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603130</span> <span class="o">&lt;</span><span class="nx">n22</span><span class="o">&gt;</span><span class="p">:</span> <span class="mh">0x00000032</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00603170</span>      <span class="mh">0x00000000</span>
+<span class="mh">0x603140</span> <span class="o">&lt;</span><span class="nx">n22</span><span class="o">+</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">:</span>      <span class="mh">0x006031b0</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00000000</span>      <span class="mh">0x00000000</span>
+</code></pre></div></div>
+
+<p>画出二叉树的结构如下，需要返回结果是 <code class="language-plaintext highlighter-rouge">2</code>，那么第一次找左子树，第二次找右子树，这样第二次返回 <code class="language-plaintext highlighter-rouge">1</code>，第一次返回 <code class="language-plaintext highlighter-rouge">2*ret</code> 即可返回 <code class="language-plaintext highlighter-rouge">2</code>，所以最后的结果是 <code class="language-plaintext highlighter-rouge">0x16=22</code>。</p>
+
+<p><img src="/blogpages/images/csapp-bomb/csapp_bomb_binary_tree.png" width="400"></p>
+
+<h3 id="0x2-结语">
+<a class="anchor" href="#0x2-%E7%BB%93%E8%AF%AD" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2 结语</h3>
+
+<p>通过本次实验流程，熟悉了汇编和寄存器相关的内容，对栈帧以及函数调用也有了更深的理解，考察了一些数据结构的内容，刚开始阅读汇编代码会比较困难，不过重要的是耐心，一行一行理解背后的原理也需要毅力，不过最后在成功地拆除了炸弹之后还是很要成就感的！</p>
+
+<h3 id="0x3-reference">
+<a class="anchor" href="#0x3-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x3 Reference</h3>
+
+<ul>
+  <li><a href="http://csapp.cs.cmu.edu/3e/labs.html">CS:APP3e, Bryant and O’Hallaron (cmu.edu)</a></li>
+  <li><a href="https://www.bilibili.com/video/BV1iW411d7hd?p=7">【精校中英字幕】2015 CMU 15-213 CSAPP 深入理解计算机系统 课程视频_哔哩哔哩_bilibili</a></li>
+  <li><a href="https://www.viseator.com/2017/06/21/CS_APP_BombLab/">深入理解计算机系统（CS:APP) - Bomb Lab 详解 viseator’s blog</a></li>
+</ul>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
