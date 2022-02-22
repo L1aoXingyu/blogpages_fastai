@@ -5,6 +5,7 @@ description: 记录在阅读和学习 CSAPP 过程中，完成 BombLab 的相关
 comments: true
 categories: [operation system, c, csapp, assembly]
 title: "CSAPP 之 Bomb Lab"
+image: images/csapp-bomb/bomb_preview.png
 ---
 
 ### 0x0 Introduction

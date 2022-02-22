@@ -4,15 +4,15 @@ layout: post
 description: 记录如何使用 VSCode 配置一个适合于深度学习场景的开发环境
 comments: true
 categories: [vscode, tool, development, deep learning]
-
 title: "VSCode 配置最舒适的深度学习开发环境"
+image: images/vscode-best-practice/cover.png
 ---
 
 ### 0x0 引言
 
 深度学习往往需要强大的算力和硬件作为支撑，这使得深度学习下的模型和算法大多需要在服务器和集群上运行，区别于传统的程序开发可以在本地的机器上运行，这给深度学习的开发带来了新的挑战。
 
-在以前，远程开发需要 SSH 登录到服务器上使用命令行和终端进行开发，相比于 Vim 的使用好手可以在终端眼花缭乱地操作代码，大部分人更习惯于 UI 界面和图形化的开发工具，而适应和学习远程开发无疑降低了代码开发效率。而除了代码开发之外，debug 模型和算法也占据着算法开发的一大部分时间，成熟的软件提供了好的 debugger 工具，而远程开发只有命令行和一些 unix 软件，又需要额外学习命令行 debug 的工具链，比如 `ipdb` 和 `gdb`。 
+在以前，远程开发需要 SSH 登录到服务器上使用命令行和终端进行开发，相比于 Vim 的使用好手可以在终端眼花缭乱地操作代码，大部分人更习惯于 UI 界面和图形化的开发工具，而适应和学习远程开发无疑降低了代码开发效率。而除了代码开发之外，debug 模型和算法也占据着算法开发的一大部分时间，成熟的软件提供了好的 debugger 工具，而远程开发只有命令行和一些 unix 软件，又需要额外学习命令行 debug 的工具链，比如 `ipdb` 和 `gdb`。
 
 然而现在已经是 2022 年了，远程开发早已变得司空见惯，也有很多软件支持了远程开发的方式，这使得我们不再需要面对黑漆漆的终端和命令行进行开发，也不需要先学习很多复杂的 debugger 工具才能进行模型和算法的开发，极大地增加了我们的开发效率，这篇文章就是总结了笔者经过一段时间探索之后所搭建的最舒适的深度学习开发环境以及一些 debug 的教程。
 
@@ -123,8 +123,48 @@ Traceback (most recent call last):
 RuntimeError: running_mean should contain 2048 elements not 1024
 ```
 
+通过上面的方式确实可以定位到错误的地方，但是有没有更高效的 debug 方式呢？下面我们使用 VSCode 进行 debug 来比较两者的差别。根据官网的教程对 debug 进行配置，配置文件一般在 `.vscode/launch.json` 中。
+
+一个参考配置文件如下，`program` 为要运行的程序，`args` 可以将命令行参数传进来，所以下面的 debug 配置转换成 `shell` 命令即为 `python3 tools/train_net.py --config-file configs/Market1501/bagtricks_R50.yml` 命令。
+
+```js
+{
+  "name": "model training",
+  "type": "python",
+  "request": "launch",
+  "program": "tools/train_net.py",
+  "args": [
+    "--config-file", "configs/Market1501/bagtricks_R50.yml",
+    ],
+  "console": "integratedTerminal"
+}
+```
+
+完成 debug 配置之后，可以通过 `F5` 或者左边的绿色箭头进行 debug，运行之后可以代码会自动停在报错的位置。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/debug_model.png" width="800"/>
+
+仍然是和上面相同的报错，不同在于可以通过 UI 进行展示，不需要去报错里面一层一层的找，另外还有一个好处是可以直观的从左边看到调用栈的信息，同时可以随机进入任何一个调用栈，除此之外还提供了 console 窗口，可以直接打印中间的一些变量结果便于进一步定位问题。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/debug_python.gif" width="900"/>
+
 #### 0x3.2 单步调试代码
+
+除了快速定位问题之外，调试模型的过程中，形状和维度一般是很容易出错的问题，需要不断地检查。下面演示一下在 python debugger 中进行单步调试形状，同时在调试过程中还可以实时查看变量的信息，另外可以不断新增断点，运行到断点位置，可以查看下面的演示。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/python_step.gif" width="900"/>
 
 ### 0x4 Debug C/C++ 代码
 
 ### 0x5 Debug Python/C++ 混合代码
+
+### 0x6 总结
+
+### 0x7 Reference
+
+- [PyCharm+Docker：打造最舒适的深度学习炼丹炉 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/52827335)
+- [Docker+VSCode配置属于自己的炼丹炉 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/102385239)
+- [VSCode+Docker: 打造最舒适的深度学习环境 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/80099904)
+- [VSCode 配置 C/C++ 终极解决方案：vs code+clang+clangd+lldb （利用完整的 clang-llvm 工具链） - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/398790625?utm_source=pocket_mylist)
+- [PyTorch Internals 1：源代码调试方法 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/106640360)
+- [gdb Tutorial (cmu.edu)](https://www.cs.cmu.edu/~gilpin/tutorial/)
