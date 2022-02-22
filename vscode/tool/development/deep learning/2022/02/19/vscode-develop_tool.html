@@ -13,10 +13,11 @@
 <link rel="canonical" href="https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html" />
 <meta property="og:url" content="https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html" />
 <meta property="og:site_name" content="Distill" />
+<meta property="og:image" content="https://l1aoxingyu.github.io/blogpages/images/vscode-best-practice/cover.png" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2022-02-19T00:00:00-06:00" />
 <script type="application/ld+json">
-{"url":"https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html","@type":"BlogPosting","headline":"VSCode 配置最舒适的深度学习开发环境","dateModified":"2022-02-19T00:00:00-06:00","datePublished":"2022-02-19T00:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html"},"description":"记录如何使用 VSCode 配置一个适合于深度学习场景的开发环境","@context":"https://schema.org"}</script>
+{"url":"https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html","@type":"BlogPosting","headline":"VSCode 配置最舒适的深度学习开发环境","dateModified":"2022-02-19T00:00:00-06:00","datePublished":"2022-02-19T00:00:00-06:00","image":"https://l1aoxingyu.github.io/blogpages/images/vscode-best-practice/cover.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://l1aoxingyu.github.io/blogpages/vscode/tool/development/deep%20learning/2022/02/19/vscode-develop_tool.html"},"description":"记录如何使用 VSCode 配置一个适合于深度学习场景的开发环境","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/blogpages/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://l1aoxingyu.github.io/blogpages/feed.xml" title="Distill" /><link rel="shortcut icon" type="image/x-icon" href="/blogpages/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
@@ -135,6 +136,8 @@ window.onload = wrap_img;
 </li>
 <li class="toc-entry toc-h3"><a href="#0x4-debug-cc-代码">0x4 Debug C/C++ 代码</a></li>
 <li class="toc-entry toc-h3"><a href="#0x5-debug-pythonc-混合代码">0x5 Debug Python/C++ 混合代码</a></li>
+<li class="toc-entry toc-h3"><a href="#0x6-总结">0x6 总结</a></li>
+<li class="toc-entry toc-h3"><a href="#0x7-reference">0x7 Reference</a></li>
 </ul><h3 id="0x0-引言">
 <a class="anchor" href="#0x0-%E5%BC%95%E8%A8%80" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0 引言</h3>
 
@@ -274,14 +277,57 @@ window.onload = wrap_img;
 RuntimeError: running_mean should contain 2048 elements not 1024
 </code></pre></div></div>
 
+<p>通过上面的方式确实可以定位到错误的地方，但是有没有更高效的 debug 方式呢？下面我们使用 VSCode 进行 debug 来比较两者的差别。根据官网的教程对 debug 进行配置，配置文件一般在 <code class="language-plaintext highlighter-rouge">.vscode/launch.json</code> 中。</p>
+
+<p>一个参考配置文件如下，<code class="language-plaintext highlighter-rouge">program</code> 为要运行的程序，<code class="language-plaintext highlighter-rouge">args</code> 可以将命令行参数传进来，所以下面的 debug 配置转换成 <code class="language-plaintext highlighter-rouge">shell</code> 命令即为 <code class="language-plaintext highlighter-rouge">python3 tools/train_net.py --config-file configs/Market1501/bagtricks_R50.yml</code> 命令。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="dl">"</span><span class="s2">name</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">model training</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">type</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">python</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">request</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">launch</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">program</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">tools/train_net.py</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">args</span><span class="dl">"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="dl">"</span><span class="s2">--config-file</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">configs/Market1501/bagtricks_R50.yml</span><span class="dl">"</span><span class="p">,</span>
+    <span class="p">],</span>
+  <span class="dl">"</span><span class="s2">console</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">integratedTerminal</span><span class="dl">"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>完成 debug 配置之后，可以通过 <code class="language-plaintext highlighter-rouge">F5</code> 或者左边的绿色箭头进行 debug，运行之后可以代码会自动停在报错的位置。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/debug_model.png" width="800"></p>
+
+<p>仍然是和上面相同的报错，不同在于可以通过 UI 进行展示，不需要去报错里面一层一层的找，另外还有一个好处是可以直观的从左边看到调用栈的信息，同时可以随机进入任何一个调用栈，除此之外还提供了 console 窗口，可以直接打印中间的一些变量结果便于进一步定位问题。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/debug_python.gif" width="900"></p>
+
 <h4 id="0x32-单步调试代码">
 <a class="anchor" href="#0x32-%E5%8D%95%E6%AD%A5%E8%B0%83%E8%AF%95%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x3.2 单步调试代码</h4>
+
+<p>除了快速定位问题之外，调试模型的过程中，形状和维度一般是很容易出错的问题，需要不断地检查。下面演示一下在 python debugger 中进行单步调试形状，同时在调试过程中还可以实时查看变量的信息，另外可以不断新增断点，运行到断点位置，可以查看下面的演示。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/python_step.gif" width="900"></p>
 
 <h3 id="0x4-debug-cc-代码">
 <a class="anchor" href="#0x4-debug-cc-%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x4 Debug C/C++ 代码</h3>
 
 <h3 id="0x5-debug-pythonc-混合代码">
 <a class="anchor" href="#0x5-debug-pythonc-%E6%B7%B7%E5%90%88%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x5 Debug Python/C++ 混合代码</h3>
+
+<h3 id="0x6-总结">
+<a class="anchor" href="#0x6-%E6%80%BB%E7%BB%93" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x6 总结</h3>
+
+<h3 id="0x7-reference">
+<a class="anchor" href="#0x7-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x7 Reference</h3>
+
+<ul>
+  <li><a href="https://zhuanlan.zhihu.com/p/52827335">PyCharm+Docker：打造最舒适的深度学习炼丹炉 - 知乎 (zhihu.com)</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/102385239">Docker+VSCode配置属于自己的炼丹炉 - 知乎 (zhihu.com)</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/80099904">VSCode+Docker: 打造最舒适的深度学习环境 - 知乎 (zhihu.com)</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/398790625?utm_source=pocket_mylist">VSCode 配置 C/C++ 终极解决方案：vs code+clang+clangd+lldb （利用完整的 clang-llvm 工具链） - 知乎 (zhihu.com)</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/106640360">PyTorch Internals 1：源代码调试方法 - 知乎 (zhihu.com)</a></li>
+  <li><a href="https://www.cs.cmu.edu/~gilpin/tutorial/">gdb Tutorial (cmu.edu)</a></li>
+</ul>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
