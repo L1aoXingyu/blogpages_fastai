@@ -156,6 +156,44 @@ RuntimeError: running_mean should contain 2048 elements not 1024
 
 ### 0x4 Debug C/C++ 代码
 
+c++ 代码一般会使用 `gdb` 进行 debug，`gdb` 也非常强大，可以实现很多功能，不过他的一个缺点就是没有图形界面，在调试复杂代码的时候效率非常低，比如需要不断地打断点，每次 next/step 之后都需要用 list 看一下前后的源码，这种方式虽然也可以达成目标，不过无疑让 debug 的效率降低了。
+
+因为这个原因，市面上也出现了很多搭配 `gdb` 使用的工具，比如 gdbinit, cgdb 等工具，更多详情可以查看这里 [终端调试哪家强？ - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/32843449).
+
+除了上面这些选择之外，还可以搭配 vscode 进行 gdb debug，通过 UI 界面让 gdb 变得更加高效和方便。比如可以在任何位置打断点，进行单步运行，查看变量的值，以及通过条件断点让一个循环在需要的位置停下来，还可以通过 coredump 文件进行 debug，直接访问到异常抛出的位置等等。
+
+下面使用 [gdb Tutorial (cmu.edu)](https://www.cs.cmu.edu/~gilpin/tutorial/) 作为例子，可以去里面查看对应的代码和编译。
+
+首先在 VSCode 中的 `launch.json` 进行下面的配置
+
+```js
+{
+    "name": "Debug",
+    "type": "gdb",
+    "request": "launch",
+    "target": "./build/gdb_debug",
+    "autorun": ["catch throw"],
+    "cwd": "${workspaceRoot}",
+    "valuesFormatting": "parseText"
+}
+```
+
+接着点击左边的绿色运行箭头或者是 `F5` 既可以直接开始运行代码，这是会发现代码会在下面的位置抛出异常，左边是函数的调用栈，中间黄色高亮的代码行为运行的位置。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/gdb_cpp_bug.png" width="900"/>
+
+在下面 console 中可以输入 `gdb` 的命令进行调试，比如下面我们访问 backtrace，然后访问地址 `0x7fffffffd684` 对应的元素，最后发现 `linked list` 在移除 `1` 的时候出现异常。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/gdb_cpp_console.png" width="900"/>
+
+上面发现当链表在移除 `1` 的时候会抛出异常，所以我们希望程序前面 remove 其他元素的时候能够正常执行，只在 `remove 1` 的时候停下，这个时候就需要借助条件断点，在 gdb 中可以通过下面的命令进行实现 `condition 1 item_to_remove==1`，不过使用 VSCode 会更方便一点，可以通过下面的方式在 UI 上进行操作。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/gdb_conditional_breakpoint.gif" width="900"/>
+
+当程序停在了我们期望的位置，接下来就可以进行单步调试来确定出问题的地方，如果使用 `gdb` 需要在终端不断地进行 next 指令，同时通过 list 查看具体的代码位置，而在 VSCode 中可以利用现成的 UI 界面，这个时候调试会更加直观。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/gdb_step.gif" width="900"/>
+
 ### 0x5 Debug Python/C++ 混合代码
 
 ### 0x6 总结
@@ -168,3 +206,4 @@ RuntimeError: running_mean should contain 2048 elements not 1024
 - [VSCode 配置 C/C++ 终极解决方案：vs code+clang+clangd+lldb （利用完整的 clang-llvm 工具链） - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/398790625?utm_source=pocket_mylist)
 - [PyTorch Internals 1：源代码调试方法 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/106640360)
 - [gdb Tutorial (cmu.edu)](https://www.cs.cmu.edu/~gilpin/tutorial/)
+- [终端调试哪家强？ - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/32843449)
