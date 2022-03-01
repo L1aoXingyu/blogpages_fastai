@@ -94,7 +94,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      2 min read
+      3 min read
     
 </span></p>
 
@@ -311,6 +311,43 @@ RuntimeError: running_mean should contain 2048 elements not 1024
 <h3 id="0x4-debug-cc-代码">
 <a class="anchor" href="#0x4-debug-cc-%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x4 Debug C/C++ 代码</h3>
 
+<p>c++ 代码一般会使用 <code class="language-plaintext highlighter-rouge">gdb</code> 进行 debug，<code class="language-plaintext highlighter-rouge">gdb</code> 也非常强大，可以实现很多功能，不过他的一个缺点就是没有图形界面，在调试复杂代码的时候效率非常低，比如需要不断地打断点，每次 next/step 之后都需要用 list 看一下前后的源码，这种方式虽然也可以达成目标，不过无疑让 debug 的效率降低了。</p>
+
+<p>因为这个原因，市面上也出现了很多搭配 <code class="language-plaintext highlighter-rouge">gdb</code> 使用的工具，比如 gdbinit, cgdb 等工具，更多详情可以查看这里 <a href="https://zhuanlan.zhihu.com/p/32843449">终端调试哪家强？ - 知乎 (zhihu.com)</a>.</p>
+
+<p>除了上面这些选择之外，还可以搭配 vscode 进行 gdb debug，通过 UI 界面让 gdb 变得更加高效和方便。比如可以在任何位置打断点，进行单步运行，查看变量的值，以及通过条件断点让一个循环在需要的位置停下来，还可以通过 coredump 文件进行 debug，直接访问到异常抛出的位置等等。</p>
+
+<p>下面使用 <a href="https://www.cs.cmu.edu/~gilpin/tutorial/">gdb Tutorial (cmu.edu)</a> 作为例子，可以去里面查看对应的代码和编译。</p>
+
+<p>首先在 VSCode 中的 <code class="language-plaintext highlighter-rouge">launch.json</code> 进行下面的配置</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+    <span class="dl">"</span><span class="s2">name</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Debug</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">type</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">gdb</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">request</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">launch</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">target</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">./build/gdb_debug</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">autorun</span><span class="dl">"</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">catch throw</span><span class="dl">"</span><span class="p">],</span>
+    <span class="dl">"</span><span class="s2">cwd</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">${workspaceRoot}</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">valuesFormatting</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">parseText</span><span class="dl">"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>接着点击左边的绿色运行箭头或者是 <code class="language-plaintext highlighter-rouge">F5</code> 既可以直接开始运行代码，这是会发现代码会在下面的位置抛出异常，左边是函数的调用栈，中间黄色高亮的代码行为运行的位置。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/gdb_cpp_bug.png" width="900"></p>
+
+<p>在下面 console 中可以输入 <code class="language-plaintext highlighter-rouge">gdb</code> 的命令进行调试，比如下面我们访问 backtrace，然后访问地址 <code class="language-plaintext highlighter-rouge">0x7fffffffd684</code> 对应的元素，最后发现 <code class="language-plaintext highlighter-rouge">linked list</code> 在移除 <code class="language-plaintext highlighter-rouge">1</code> 的时候出现异常。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/gdb_cpp_console.png" width="900"></p>
+
+<p>上面发现当链表在移除 <code class="language-plaintext highlighter-rouge">1</code> 的时候会抛出异常，所以我们希望程序前面 remove 其他元素的时候能够正常执行，只在 <code class="language-plaintext highlighter-rouge">remove 1</code> 的时候停下，这个时候就需要借助条件断点，在 gdb 中可以通过下面的命令进行实现 <code class="language-plaintext highlighter-rouge">condition 1 item_to_remove==1</code>，不过使用 VSCode 会更方便一点，可以通过下面的方式在 UI 上进行操作。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/gdb_conditional_breakpoint.gif" width="900"></p>
+
+<p>当程序停在了我们期望的位置，接下来就可以进行单步调试来确定出问题的地方，如果使用 <code class="language-plaintext highlighter-rouge">gdb</code> 需要在终端不断地进行 next 指令，同时通过 list 查看具体的代码位置，而在 VSCode 中可以利用现成的 UI 界面，这个时候调试会更加直观。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/gdb_step.gif" width="900"></p>
+
 <h3 id="0x5-debug-pythonc-混合代码">
 <a class="anchor" href="#0x5-debug-pythonc-%E6%B7%B7%E5%90%88%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x5 Debug Python/C++ 混合代码</h3>
 
@@ -327,6 +364,7 @@ RuntimeError: running_mean should contain 2048 elements not 1024
   <li><a href="https://zhuanlan.zhihu.com/p/398790625?utm_source=pocket_mylist">VSCode 配置 C/C++ 终极解决方案：vs code+clang+clangd+lldb （利用完整的 clang-llvm 工具链） - 知乎 (zhihu.com)</a></li>
   <li><a href="https://zhuanlan.zhihu.com/p/106640360">PyTorch Internals 1：源代码调试方法 - 知乎 (zhihu.com)</a></li>
   <li><a href="https://www.cs.cmu.edu/~gilpin/tutorial/">gdb Tutorial (cmu.edu)</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/32843449">终端调试哪家强？ - 知乎 (zhihu.com)</a></li>
 </ul>
 
   </div><!-- from https://github.com/utterance/utterances -->
