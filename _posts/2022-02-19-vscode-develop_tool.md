@@ -194,9 +194,55 @@ c++ 代码一般会使用 `gdb` 进行 debug，`gdb` 也非常强大，可以实
 
 <img src="{{ site.baseurl }}/images/vscode-best-practice/gdb_step.gif" width="900"/>
 
+如果发现自己无法在 VSCode 用鼠标打断点，那么在设置里面搜索 `Debug: Allow Breakpoints Everywhere`，打上勾应该就可以了。
+
 ### 0x5 Debug Python/C++ 混合代码
 
+除了调试单独的 Python 和 C++ 代码外，在深度学习中还有一种常见的场景是 Python 和 C++ 混合调试，因为深度学习需要大量的计算，所以大部分计算相关的代码都是用 C++ 或者 CUDA 写的，Python 只是作为前端和接口方便使用。
+
+在调试深度学习模型或者算子的时候，常常需要从 Python 层作为入口，但是最终需要 Debug 到 C++ 层的代码，下面使用 relu 算子举例，如何从进行 Python/C++ 混合 debug。
+
+其实这种类型的 debug 借助 `gdb` 就可以实现，在命令行里面输入下面的指令即可
+
+```shell
+# option1
+gdb --args python test_relu.py
+b <C++ function to break at>
+run
+
+# option2
+gdb python
+b <C++ function to break at>
+run relu.py
+```
+
+不过用上面的方式在 debug 简单的代码还行，当代码比较复杂之后，还是需要更有效率的 debug 方式，这个时候使用 VSCode 提供的 UI 就可以帮上大忙。
+
+在 VSCode 中按照下面的方式进行配置
+
+```js
+{
+    "name": "gdb debug",
+    "type": "gdb",
+    "request": "launch",
+    // "env": {"PYTHONPATH": "your python path"}, optional environment variable
+    "target": "/home/dev/miniconda/bin/python",
+    "arguments": "test_relu.py",
+    "autorun": ["catch throw"],
+    "cwd": "${workspaceRoot}",
+    "valuesFormatting": "parseText"
+}
+```
+
+按下左边的绿色箭头或者是 `F5` 程序就可以运行了，提前在对应的 C++ 中打上断点，程序最终会在断点位置停下来，然后可以进行单步调试或者是使用 `gdb` 中的命令在 console 中进行想要的操作，非常方便。
+
+<img src="{{ site.baseurl }}/images/vscode-best-practice/gdb_python_cpp.gif" width="900"/>
+
 ### 0x6 总结
+
+这篇文章中我们介绍了使用 VSCode 的 Python Debugger 进行 Python 代码的调试，以及配合 `gdb` 这个强大的工具对 C++ 和 Python/C++ 混合代码的调试，通过 VSCode 的 UI 以及可交互的 debug 方式可以增加程序开发的效率，希望这篇文章对你有帮助。
+
+如果有任何问题，欢迎在评论去留言。
 
 ### 0x7 Reference
 
