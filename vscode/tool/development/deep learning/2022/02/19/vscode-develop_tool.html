@@ -94,7 +94,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      3 min read
+      4 min read
     
 </span></p>
 
@@ -348,11 +348,55 @@ RuntimeError: running_mean should contain 2048 elements not 1024
 
 <p><img src="/blogpages/images/vscode-best-practice/gdb_step.gif" width="900"></p>
 
+<p>如果发现自己无法在 VSCode 用鼠标打断点，那么在设置里面搜索 <code class="language-plaintext highlighter-rouge">Debug: Allow Breakpoints Everywhere</code>，打上勾应该就可以了。</p>
+
 <h3 id="0x5-debug-pythonc-混合代码">
 <a class="anchor" href="#0x5-debug-pythonc-%E6%B7%B7%E5%90%88%E4%BB%A3%E7%A0%81" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x5 Debug Python/C++ 混合代码</h3>
 
+<p>除了调试单独的 Python 和 C++ 代码外，在深度学习中还有一种常见的场景是 Python 和 C++ 混合调试，因为深度学习需要大量的计算，所以大部分计算相关的代码都是用 C++ 或者 CUDA 写的，Python 只是作为前端和接口方便使用。</p>
+
+<p>在调试深度学习模型或者算子的时候，常常需要从 Python 层作为入口，但是最终需要 Debug 到 C++ 层的代码，下面使用 relu 算子举例，如何从进行 Python/C++ 混合 debug。</p>
+
+<p>其实这种类型的 debug 借助 <code class="language-plaintext highlighter-rouge">gdb</code> 就可以实现，在命令行里面输入下面的指令即可</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># option1</span>
+gdb <span class="nt">--args</span> python test_relu.py
+b &lt;C++ <span class="k">function </span>to <span class="nb">break </span>at&gt;
+run
+
+<span class="c"># option2</span>
+gdb python
+b &lt;C++ <span class="k">function </span>to <span class="nb">break </span>at&gt;
+run relu.py
+</code></pre></div></div>
+
+<p>不过用上面的方式在 debug 简单的代码还行，当代码比较复杂之后，还是需要更有效率的 debug 方式，这个时候使用 VSCode 提供的 UI 就可以帮上大忙。</p>
+
+<p>在 VSCode 中按照下面的方式进行配置</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+    <span class="dl">"</span><span class="s2">name</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">gdb debug</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">type</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">gdb</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">request</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">launch</span><span class="dl">"</span><span class="p">,</span>
+    <span class="c1">// "env": {"PYTHONPATH": "your python path"}, optional environment variable</span>
+    <span class="dl">"</span><span class="s2">target</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">/home/dev/miniconda/bin/python</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">arguments</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">test_relu.py</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">autorun</span><span class="dl">"</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">catch throw</span><span class="dl">"</span><span class="p">],</span>
+    <span class="dl">"</span><span class="s2">cwd</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">${workspaceRoot}</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">valuesFormatting</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">parseText</span><span class="dl">"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>按下左边的绿色箭头或者是 <code class="language-plaintext highlighter-rouge">F5</code> 程序就可以运行了，提前在对应的 C++ 中打上断点，程序最终会在断点位置停下来，然后可以进行单步调试或者是使用 <code class="language-plaintext highlighter-rouge">gdb</code> 中的命令在 console 中进行想要的操作，非常方便。</p>
+
+<p><img src="/blogpages/images/vscode-best-practice/gdb_python_cpp.gif" width="900"></p>
+
 <h3 id="0x6-总结">
 <a class="anchor" href="#0x6-%E6%80%BB%E7%BB%93" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x6 总结</h3>
+
+<p>这篇文章中我们介绍了使用 VSCode 的 Python Debugger 进行 Python 代码的调试，以及配合 <code class="language-plaintext highlighter-rouge">gdb</code> 这个强大的工具对 C++ 和 Python/C++ 混合代码的调试，通过 VSCode 的 UI 以及可交互的 debug 方式可以增加程序开发的效率，希望这篇文章对你有帮助。</p>
+
+<p>如果有任何问题，欢迎在评论去留言。</p>
 
 <h3 id="0x7-reference">
 <a class="anchor" href="#0x7-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x7 Reference</h3>
