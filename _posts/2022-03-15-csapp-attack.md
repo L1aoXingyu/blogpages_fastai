@@ -189,6 +189,49 @@ PASS: Would have posted the following:
 
 #### 0x1.2 Level 2
 
+level2 攻击需要对输入的字符串插入一小段可执行的代码，除了要求程序返回的时候跳转到 `touch2` 这个函数，还需要 `val==cookie` 这个条件满足。
+
+```c
+void touch2(unsigned val) {
+    vlevel = 2; /* Part of validation protocol */
+    if (val == cookie) {
+        printf("Touch2!: You called touch2(0x%.8x)\n", val);
+    } else {
+        printf("Misfire: You called touch2(0x%.8x)\n", val);
+    }
+    exit(0);
+}
+```
+
+如果要执行到 `touch2`，那么和 level1 类似，只需要输入字符让其 overflow 栈中的内存，覆盖掉之前的返回地址即可。另外的一个需求是要对函数 `touch2` 的第一个参数修改为 `cookie` 这个值，需要插入一段汇编代码，但是如何让插入的这段汇编代码执行呢？
+
+原理可以用下面的这幅图来表示
+
+<div align='center'>
+<img src='{{ site.baseurl }}/images/csapp-attack/attack_preview.png' width='500'>
+</div>
+
+相当于在 Q stack frame 中插入一段字符串，不过不要用 `touch1` 的地址去覆盖之前的返回地址，而是用 B 的地址去覆盖，这样程序在执行完 Q 之后就会跳到 B 的地址出继续执行，而 B 地址出的内存是我们通过 string 传入的内容，这样我们就可以传入一段可以执行的命令，在执行完之后，通过 `retq` 再跳转到 `touch2` 的执行地址。
+
+前面通过 `gdb` 查看 `getbuf` 中的内存，发现栈顶的地址是 `0x0x5561dc78`，所以我们可以把需要执行的代码段在最前面写入，然后把这个地址放到 `0x4017c0` 的位置就可以插入我们要执行的代码。
+
+```js
+(gdb) b*0x4017ac
+(gdb) r -q
+(gdb) x/6gx $rsp
+0x5561dc78:     0x0000000000000000      0x0000000000000000
+0x5561dc88:     0x0000000000000000      0x0000000000000000
+0x5561dc98:     0x0000000000000000      0x00000000004017c0
+```
+
+下面来看一下我们需要执行的代码应该怎么写，这里需要就 `val` 设置成 `cookie` 的值，可以简单地将 level1 中 `touch1` 的地址修改为 `touch2` 即执行到 `touch2` 中，然后通过 `x 0x6044e4` 发现 `cookie` 的值为 `0x59b997fa`，所以只需要把 `%rdi` 设置成 `cookie` 值即可，要写入的代码如下
+
+```js
+pushq $0x4017ec
+movq $0x59b997fa,%rdi
+ret
+```
+
 #### 0x1.3 Level 3
 
 ### 0x2 Return-Oriented Programming
