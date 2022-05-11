@@ -499,5 +499,5 @@ PASS: Would have posted the following:
 
 - [recitation05-attacklab.pptx (cmu.edu)](https://www.cs.cmu.edu/afs/cs/academic/class/15213-f21/www/recitations/rec05_slides.pdf)
 - [attacklab.pdf (cmu.edu)](http://csapp.cs.cmu.edu/3e/attacklab.pdf)
-- [《深入理解计算机系统》Attack Lab实验解析 | Yi's Blog (earthaa.github.io)](https://earthaa.github.io/2020/02/11/CSAPP-Attacklab/)
-- [《深入理解计算机系统》实验3.Attack Lab | 贺巩山的博客 (hegongshan.com)](https://www.hegongshan.com/2021/06/02/csapp-3-attack-lab/)
+- [《深入理解计算机系统》Attack Lab实验解析 Yi's Blog (earthaa.github.io)](https://earthaa.github.io/2020/02/11/CSAPP-Attacklab/)
+- [《深入理解计算机系统》实验3.Attack Lab 贺巩山的博客 (hegongshan.com)](https://www.hegongshan.com/2021/06/02/csapp-3-attack-lab/)
