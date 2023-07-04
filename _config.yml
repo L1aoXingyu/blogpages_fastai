@@ -39,8 +39,9 @@ baseurl: "/blogpages" # the subpath of your site, e.g. "/blog".
 # Github and twitter are optional:
 minima:
   social_links:
-    - { platform: github,  user_url: "https://github.com/L1aoXingyu" }
-    - { platform: twitter, user_url: "https://twitter.com/xingyu_liao" }
+    email: "sherlockliao01@gmail.com"
+    twitter: xingyu_liao
+    github: L1aoXingyu
 
 # Set this to true to get LaTeX math equation support
 use_math: true
@@ -97,7 +98,7 @@ plugins:
 paginate: 15
 paginate_path: /page:num/
 
-remote_theme: jekyll/minima
+remote_theme: jekyll/minima@fdc3aba23a1d59ad1d1f65f505693848c4b82fdf
 
 titles_from_headings:
   enabled:     true
