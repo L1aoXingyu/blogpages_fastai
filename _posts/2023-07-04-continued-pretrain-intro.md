@@ -4,7 +4,7 @@ layout: post
 description: 介绍一下 continued pre-train
 comments: true
 categories: [deep learning, LLM, pre-train]
-title: "如何做 continued pre-train"
+title: 如何做 continued pre-train
 ---
 
 在 LLM 中，为了获得一个好的 basemodel，往往都会使用 pre-train 的方式。但是通常 pre-train 都需要消耗很多资源，不管是算力还是数据。其实除了 pre-train 之外，还有一种方案叫做 continued pre-train，这篇文章会简要介绍一下这种方案。
