@@ -35,7 +35,6 @@ for name, param in state_dict.items():
 	if max_val > 2**15:
 		abs_diff = torch.abs(param.data.to(torch.float16) - param.data).max()
 		print(f"Parameter '{name}' and fp16 range diff: {abs_diff}.")
-
 ```
 
 <div align='center'>
@@ -88,6 +87,7 @@ with torch.no_grad() and torch.autocast("cuda", enabled=fp16_mode):
 ## 0x3 后记
 
 ## 0x4 Reference
+
 [全网最全-混合精度训练原理](https://zhuanlan.zhihu.com/p/441591808)
 
 [(抛砖引玉)TensorRT的FP16不得劲？怎么办？在线支招！](https://zhuanlan.zhihu.com/p/360843851)
