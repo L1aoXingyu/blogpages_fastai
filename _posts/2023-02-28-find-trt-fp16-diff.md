@@ -73,7 +73,7 @@ for name, param in state_dict.items():
 
 ```python
 with torch.no_grad() and torch.autocast("cuda", enabled=fp16_mode):
-		outputs = model.forward(inputs)
+  outputs = model.forward(inputs)
 ```
 
 所以问题就出在 TensorRT 的模型导出上， 因为 TensorRT 会在内部做一些优化，比如 layer fusion 等，所以大概率是模型在 fusion 之后，某些 layer 的 FP16 精度出现上溢或者下溢的问题，导致最终模型的输出结果异常。
