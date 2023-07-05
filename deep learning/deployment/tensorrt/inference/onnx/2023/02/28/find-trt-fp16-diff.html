@@ -172,11 +172,10 @@ window.onload = wrap_img;
 	<span class="k">if</span> <span class="n">max_val</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="o">**</span><span class="mi">15</span><span class="p">:</span>
 		<span class="n">abs_diff</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">param</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">float16</span><span class="p">)</span> <span class="o">-</span> <span class="n">param</span><span class="p">.</span><span class="n">data</span><span class="p">).</span><span class="nb">max</span><span class="p">()</span>
 		<span class="k">print</span><span class="p">(</span><span class="s">f"Parameter '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s">' and fp16 range diff: </span><span class="si">{</span><span class="n">abs_diff</span><span class="si">}</span><span class="s">."</span><span class="p">)</span>
-
 </code></pre></div></div>
 
 <div align="center">
-<img src="/blogpages/images/fp32_fp16_diff/fp32_fp16.png" width="500">
+<img src="/blogpages/images/fp32_fp16_diff/fp32_fp16.png" width="700">
 </div>
 
 <p>而输入一般会做 normalization，所以也不会超过 FP16 的 dynamic range，唯一有可能出问题就是中间的 activation 的计算，可能存在溢出的问题。</p>
@@ -189,7 +188,7 @@ window.onload = wrap_img;
 <p>在 <a href="https://arxiv.org/pdf/1710.03740.pdf">MIXED PRECISION TRAINING</a> 这篇论文中，作者提出了混合精度训练的原理，我们也可以用一张图来简单表示整体的训练流程。</p>
 
 <div align="center">
-<img src="/blogpages/images/fp32_fp16_diff/amp_training.png" alt="ref: https://www.mindspore.cn/tutorials/zh-CN/r2.0.0-alpha/advanced/mixed_precision.htm" width="500">
+<img src="/blogpages/images/fp32_fp16_diff/amp_training.png" alt="ref: https://www.mindspore.cn/tutorials/zh-CN/r2.0.0-alpha/advanced/mixed_precision.htm" width="700">
 </div>
 
 <p>其中要特别注意以下 3 点，weight backup，loss scaling 以及 FP16 white list。</p>
@@ -233,6 +232,7 @@ window.onload = wrap_img;
 
 <h2 id="0x4-reference">
 <a class="anchor" href="#0x4-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>0x4 Reference</h2>
+
 <p><a href="https://zhuanlan.zhihu.com/p/441591808">全网最全-混合精度训练原理</a></p>
 
 <p><a href="https://zhuanlan.zhihu.com/p/360843851">(抛砖引玉)TensorRT的FP16不得劲？怎么办？在线支招！</a></p>
